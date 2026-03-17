@@ -56,6 +56,15 @@ var BOOK_REGISTRY = [
     title: "2025年度 共通テスト過去問 化学",
     dataPath: "data/kakomon_chem/meta.js",
     enabled: true
+  },
+  {
+    id: "zkai_2026_chem",
+    publisher: "Z会",
+    year: 2026,
+    subject: "化学",
+    title: "2026年 Z会共通テスト実戦模試 化学",
+    dataPath: "data/zkai_2026_chem/meta.js",
+    enabled: true
   }
 ];
 
