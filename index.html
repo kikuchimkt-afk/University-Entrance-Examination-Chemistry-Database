@@ -241,6 +241,7 @@ body.admin-mode #adminToggle { background:var(--warning); color:white; border-ra
         <span class="logo-sub">共通テスト問題データベース</span>
       </div>
       <div class="header-actions">
+        <button class="btn btn-ghost btn-icon" onclick="openHelp()" title="使い方ガイド">❓</button>
         <button class="btn btn-ghost btn-icon" id="adminToggle" onclick="toggleAdminMode()" title="管理モード">🔧</button>
         <button class="btn btn-ghost btn-icon" id="selectModeBtn" onclick="toggleSelectMode()" title="選択モード">☐</button>
       </div>
@@ -324,6 +325,56 @@ body.admin-mode #adminToggle { background:var(--warning); color:white; border-ra
           <button class="view-tab" data-view="answer" onclick="switchView('answer')">✅ 解答のみ</button>
         </div>
         <button class="btn btn-primary" onclick="printCurrent()">🖨️ 印刷</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
+    <div class="modal-content" style="max-width:720px">
+      <div class="modal-header" style="display:flex!important;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)">
+        <h2 style="margin:0;font-size:18px;color:var(--text-primary)">📖 使い方ガイド</h2>
+        <button class="btn btn-ghost btn-icon" onclick="closeHelp()" style="font-size:20px">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px;max-height:70vh;overflow-y:auto;font-size:14px;line-height:1.7;color:var(--text-primary)">
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">🔍 検索・フィルタ</h3>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li><b>出版社・年度・科目・回</b> のチップをクリックで絞り込み</li>
+          <li><b>キーワード検索</b>：問題名・タグ・トピック等で自由検索</li>
+          <li>複数条件の組み合わせ可能（AND検索）</li>
+        </ul>
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">👁️ 問題の閲覧</h3>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li>カードをクリックで問題ビューアを表示</li>
+          <li><b>問題＋解答</b>：左右2列で同時表示</li>
+          <li><b>問題のみ / 解答のみ</b>：タブで切り替え</li>
+          <li>画像クリックで拡大表示</li>
+        </ul>
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">☐ 選択モード＆印刷</h3>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li>ヘッダーの <b>☐</b> ボタンで選択モード ON/OFF</li>
+          <li>カードをクリックして複数問題を選択</li>
+          <li>画面下部のバーから <b>🖨️ 印刷</b> / <b>👁️ プレビュー</b></li>
+          <li>各画像が1ページに収まるよう自動縮小されます</li>
+          <li>問題と解答・解説は別ページに出力されます</li>
+        </ul>
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">🔧 管理モード（画像編集）</h3>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li>ヘッダーの <b>🔧</b> ボタンで管理モード ON/OFF</li>
+          <li><b>画像の追加</b>：ドラッグ＆ドロップ / Ctrl+V でペースト</li>
+          <li><b>画像の削除</b>：画像上の ✕ ボタン</li>
+          <li><b>画像の並替</b>：↑↓ ボタンで順序変更</li>
+          <li>変更は自動的にクラウド（Google Drive）に保存されます</li>
+        </ul>
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">☁️ クラウド同期</h3>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li>画像の修正データはGoogle Driveに自動保存</li>
+          <li>別のPCでも同じデータが利用可能</li>
+          <li>ローカルキャッシュ併用で高速表示</li>
+        </ul>
+        <div style="background:var(--surface-card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-top:8px">
+          <p style="margin:0;font-size:13px;color:var(--text-muted)">💡 <b>ヒント</b>：ビューア表示中に問題カードの 🖨️ ボタンを押すと、その問題だけを直接印刷できます。</p>
+        </div>
       </div>
     </div>
   </div>
@@ -1359,7 +1410,7 @@ function renderCards() {
             <div class="card-meta">
               <span>配点${question.score}点</span>
               <span>目安${question.timeMinutes}分</span>
-              <span>📄${imageCount}p</span>
+              <span id="imgcnt_${book.id}_${question.id}">📄${imageCount}p</span>
             </div>
             <div class="card-source">${book.title}</div>
           </div>
@@ -1376,6 +1427,21 @@ function renderCards() {
       </div>
     `;
   }).join('');
+
+  // オーバーライド画像数をバックグラウンドで更新
+  results.forEach(async ({ book, question }) => {
+    const baseCount = (question.problemImages?.length || 0) + (question.answerImages?.length || 0);
+    if (baseCount > 0) return; // 元画像がある場合はそのまま
+    const pKey = `${book.id}/${question.id}/problem`;
+    const aKey = `${book.id}/${question.id}/answer`;
+    const pOverride = await cacheGet(pKey);
+    const aOverride = await cacheGet(aKey);
+    const overrideCount = (pOverride?.length || 0) + (aOverride?.length || 0);
+    if (overrideCount > 0) {
+      const el = document.getElementById(`imgcnt_${book.id}_${question.id}`);
+      if (el) el.textContent = `📄${overrideCount}p`;
+    }
+  });
 }
 
 // --- Card Click ---
@@ -1676,6 +1742,16 @@ function closeModal() {
   document.getElementById('viewerModal').classList.remove('active');
   document.body.style.overflow = '';
   currentViewData = null;
+}
+
+// --- Help Modal ---
+function openHelp() {
+  document.getElementById('helpModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeHelp() {
+  document.getElementById('helpModal').classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 // --- Print ---
