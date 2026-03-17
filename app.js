@@ -394,7 +394,7 @@ async function renderViewerContent() {
     <div class="tip-card" style="margin-top:12px"><h4>⚠️ つまずきやすいポイント</h4><ul>${(q.tips.stumbling_points||[]).map(p=>`<li>${p}</li>`).join('')}</ul></div>
     <div class="tip-start">${q.tips.key_to_start||''}</div></div>` : '';
 
-  body.innerHTML = imagesHtml + tipsHtml;
+  body.innerHTML = tipsHtml + imagesHtml;
   if (adminMode) setupAdminDropZones();
 }
 
