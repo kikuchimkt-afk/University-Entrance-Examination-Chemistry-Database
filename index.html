@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>共通テスト化学データベース</title>
+  <meta name="description" content="共通テスト化学の問題を出版社・年度・単元で横断検索し、問題と解説をワンセットで印刷できるWebアプリ">
+  <style>
+/* =============================================================================
+   共通テスト化学データベース - スタイル
+   ============================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;900&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-primary: #0a0f1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a2332;
+  --bg-card-hover: #223040;
+  --bg-modal: #162030;
+  --bg-input: #0d1520;
+  --text-primary: #e8eaf0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-accent: #38bdf8;
+  --accent-primary: #0ea5e9;
+  --accent-secondary: #06b6d4;
+  --accent-gradient: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%);
+  --accent-glow: rgba(14, 165, 233, 0.3);
+  --border-color: #1e3a5f;
+  --border-hover: #2d5a8a;
+  --tag-bg: rgba(14, 165, 233, 0.12);
+  --tag-border: rgba(14, 165, 233, 0.25);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans JP','Inter',sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width:8px; height:8px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+/* --- Header --- */
+.header { position:sticky; top:0; z-index:100; background:rgba(10,15,26,0.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border-color); padding:0 24px; }
+.header-inner { max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:64px; }
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-icon { font-size:28px; filter:drop-shadow(0 0 8px var(--accent-glow)); }
+.logo-text { font-size:18px; font-weight:700; background:var(--accent-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.logo-sub { font-size:11px; color:var(--text-muted); font-weight:400; margin-left:4px; }
+.header-actions { display:flex; align-items:center; gap:8px; }
+
+/* --- Buttons --- */
+.btn { display:inline-flex; align-items:center; gap:8px; padding:8px 18px; border:none; border-radius:var(--radius-md); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:var(--transition); text-decoration:none; white-space:nowrap; }
+.btn-primary { background:var(--accent-gradient); color:white; box-shadow:var(--shadow-sm), 0 0 12px var(--accent-glow); }
+.btn-primary:hover { transform:translateY(-1px); box-shadow:var(--shadow-md), var(--shadow-glow); }
+.btn-secondary { background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-color); }
+.btn-secondary:hover { background:var(--bg-card-hover); border-color:var(--border-hover); }
+.btn-ghost { background:transparent; color:var(--text-secondary); padding:8px 12px; }
+.btn-ghost:hover { background:rgba(255,255,255,0.05); color:var(--text-primary); }
+.btn-icon { width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); font-size:18px; }
+.btn-danger { background:var(--danger); color:white; }
+
+/* --- Search Section --- */
+.search-section { background:var(--bg-secondary); border-bottom:1px solid var(--border-color); padding:16px 24px; }
+.search-inner { max-width:1400px; margin:0 auto; }
+
+.filter-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.filter-label { font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; min-width:48px; flex-shrink:0; }
+.filter-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.filter-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 11px; background:var(--tag-bg); border:1px solid var(--tag-border); border-radius:20px; font-size:11px; font-weight:500; color:var(--text-accent); cursor:pointer; transition:var(--transition); user-select:none; }
+.filter-chip:hover { background:rgba(14,165,233,0.2); border-color:var(--accent-primary); }
+.filter-chip.active { background:var(--accent-primary); border-color:var(--accent-primary); color:white; box-shadow:0 0 8px var(--accent-glow); }
+.filter-chip .chip-icon { font-size:12px; }
+
+.search-bar { position:relative; margin-bottom:10px; }
+.search-bar input { width:100%; padding:12px 20px 12px 44px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-lg); color:var(--text-primary); font-family:inherit; font-size:14px; transition:var(--transition); outline:none; }
+.search-bar input:focus { border-color:var(--accent-primary); box-shadow:0 0 0 3px var(--accent-glow); }
+.search-bar input::placeholder { color:var(--text-muted); }
+.search-bar .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:18px; color:var(--text-muted); pointer-events:none; }
+.search-bar .clear-btn { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; display:none; }
+.search-bar .clear-btn.visible { display:block; }
+
+/* --- Main --- */
+.main-content { max-width:1400px; margin:0 auto; padding:24px; }
+.stats-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; padding:10px 16px; background:var(--bg-card); border-radius:var(--radius-md); border:1px solid var(--border-color); }
+.stats-text { font-size:13px; color:var(--text-secondary); }
+.stats-text strong { color:var(--text-accent); font-weight:700; }
+
+.cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:14px; }
+
+/* --- Cards --- */
+.question-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); overflow:hidden; transition:var(--transition); cursor:pointer; position:relative; }
+.question-card:hover { border-color:var(--accent-primary); transform:translateY(-2px); box-shadow:var(--shadow-lg), 0 0 16px var(--accent-glow); }
+.question-card.selected { border-color:var(--accent-primary); box-shadow:0 0 0 2px var(--accent-primary), var(--shadow-md); }
+.card-select-check { position:absolute; top:12px; right:12px; width:22px; height:22px; border-radius:50%; border:2px solid var(--border-color); background:var(--bg-card); display:flex; align-items:center; justify-content:center; font-size:12px; color:transparent; transition:var(--transition); z-index:2; }
+.question-card.selected .card-select-check { background:var(--accent-primary); border-color:var(--accent-primary); color:white; }
+.card-header { padding:14px 18px 10px; display:flex; align-items:flex-start; gap:10px; }
+.card-publisher-badge { padding:3px 8px; border-radius:var(--radius-sm); font-size:10px; font-weight:700; color:white; white-space:nowrap; }
+.card-round-badge { padding:3px 8px; background:var(--accent-gradient); border-radius:var(--radius-sm); font-size:10px; font-weight:700; color:white; white-space:nowrap; }
+.card-title-area { flex:1; min-width:0; }
+.card-title { font-size:15px; font-weight:700; margin-bottom:3px; }
+.card-meta { font-size:11px; color:var(--text-muted); display:flex; gap:10px; }
+.card-source { font-size:10px; color:var(--text-muted); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.card-tags { padding:0 18px 12px; display:flex; flex-wrap:wrap; gap:4px; }
+.card-tag { padding:2px 7px; border-radius:4px; font-size:10px; font-weight:500; background:var(--tag-bg); color:var(--text-accent); border:1px solid transparent; }
+.card-tag.highlight { border-color:var(--accent-primary); background:rgba(14,165,233,0.2); }
+.card-topic { padding:0 18px 12px; font-size:12px; color:var(--text-secondary); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.card-footer { padding:8px 18px; background:rgba(0,0,0,0.2); border-top:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; font-size:11px; color:var(--text-muted); }
+.card-footer-actions { display:flex; gap:4px; }
+
+/* --- Modal --- */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); z-index:200; display:none; align-items:center; justify-content:center; padding:24px; }
+.modal-overlay.active { display:flex; }
+.modal-content { background:var(--bg-modal); border:1px solid var(--border-color); border-radius:var(--radius-xl); width:100%; max-width:1200px; max-height:90vh; display:flex; flex-direction:column; animation:slideUp 0.3s ease; box-shadow:var(--shadow-lg); }
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.modal-header { padding:16px 24px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.modal-title { font-size:16px; font-weight:700; display:flex; align-items:center; gap:10px; }
+.modal-title .badge { padding:3px 10px; background:var(--accent-gradient); border-radius:var(--radius-sm); font-size:11px; font-weight:700; color:white; }
+.modal-close { width:36px; height:36px; border:none; background:var(--bg-card); border-radius:var(--radius-sm); color:var(--text-secondary); font-size:20px; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; }
+.modal-close:hover { background:var(--danger); color:white; }
+.modal-body { flex:1; overflow-y:auto; padding:20px; }
+.modal-footer { padding:12px 24px; border-top:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.view-tabs { display:flex; gap:4px; background:var(--bg-input); border-radius:var(--radius-md); padding:3px; }
+.view-tab { padding:6px 16px; border:none; border-radius:var(--radius-sm); background:transparent; color:var(--text-secondary); font-family:inherit; font-size:12px; font-weight:600; cursor:pointer; transition:var(--transition); }
+.view-tab.active { background:var(--accent-primary); color:white; }
+
+/* --- Gallery --- */
+.image-gallery { display:flex; flex-direction:column; gap:4px; align-items:center; }
+.image-gallery img { width:100%; max-width:800px; border-radius:var(--radius-sm); border:1px solid var(--border-color); background:white; }
+.gallery-pair { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.gallery-pair .gallery-column { display:flex; flex-direction:column; gap:4px; }
+.gallery-pair .gallery-column h3 { font-size:13px; font-weight:600; color:var(--text-accent); margin-bottom:6px; padding:5px 10px; background:var(--tag-bg); border-radius:var(--radius-sm); text-align:center; }
+.gallery-pair img { width:100%; border-radius:var(--radius-sm); border:1px solid var(--border-color); background:white; }
+
+/* --- Admin Mode --- */
+.admin-indicator { position:fixed; top:64px; left:0; right:0; z-index:99; background:linear-gradient(135deg, #f59e0b 0%, #f97316 100%); color:white; text-align:center; font-size:12px; font-weight:600; padding:6px; display:none; }
+.admin-indicator.active { display:block; }
+body.admin-mode #adminToggle { background:var(--warning); color:white; border-radius:var(--radius-sm); }
+
+.admin-img-wrapper { position:relative; margin-bottom:6px; }
+.admin-img-wrapper img { cursor:pointer; transition:var(--transition); }
+.admin-img-wrapper:hover img { opacity:0.8; outline:2px dashed var(--warning); }
+.admin-img-actions { position:absolute; top:4px; right:4px; display:flex; gap:4px; }
+.admin-img-actions button { width:28px; height:28px; border:none; border-radius:4px; font-size:14px; cursor:pointer; opacity:0.85; transition:var(--transition); display:flex; align-items:center; justify-content:center; }
+.admin-img-actions button:hover { opacity:1; transform:scale(1.1); }
+.admin-img-actions .btn-del { background:var(--danger); color:white; }
+.admin-img-actions .btn-up { background:var(--accent-primary); color:white; }
+.admin-img-actions .btn-down { background:var(--accent-primary); color:white; }
+
+.admin-drop-zone { border:2px dashed var(--border-hover); border-radius:var(--radius-md); padding:20px; text-align:center; color:var(--text-muted); font-size:12px; cursor:pointer; transition:var(--transition); margin:6px 0; min-height:60px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:4px; }
+.admin-drop-zone:hover, .admin-drop-zone.drag-over { border-color:var(--warning); background:rgba(245,158,11,0.08); color:var(--warning); }
+.admin-drop-zone input[type="file"] { display:none; }
+
+/* --- Tips --- */
+.tips-section { margin-top:20px; border-top:1px solid var(--border-color); padding-top:16px; }
+.tips-section h3 { font-size:14px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.tip-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:14px; margin-bottom:10px; }
+.tip-card h4 { font-size:12px; font-weight:600; color:var(--text-accent); margin-bottom:6px; }
+.tip-card ul { list-style:none; padding:0; }
+.tip-card li { padding:4px 0 4px 18px; position:relative; font-size:12px; color:var(--text-secondary); line-height:1.6; }
+.tip-card li::before { content:"⚠"; position:absolute; left:0; top:4px; font-size:11px; }
+.tip-start { background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); border-radius:var(--radius-md); padding:14px; margin-top:10px; font-size:12px; color:var(--text-secondary); line-height:1.7; }
+.tip-start::before { content:"💡 解き始めのヒント"; display:block; font-size:12px; font-weight:700; color:var(--success); margin-bottom:6px; }
+.sub-questions { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+.sub-question { display:flex; align-items:flex-start; gap:10px; padding:6px 10px; background:rgba(0,0,0,0.15); border-radius:var(--radius-sm); }
+.sub-question-label { font-size:12px; font-weight:700; color:var(--text-accent); white-space:nowrap; min-width:50px; }
+.sub-question-tags { display:flex; flex-wrap:wrap; gap:4px; }
+
+/* --- No Results / Empty --- */
+.no-results { text-align:center; padding:60px 24px; color:var(--text-muted); }
+.no-results .no-results-icon { font-size:42px; margin-bottom:12px; opacity:0.5; }
+.no-results h3 { font-size:16px; font-weight:600; margin-bottom:6px; color:var(--text-secondary); }
+.empty-images { text-align:center; padding:30px; color:var(--text-muted); font-size:13px; }
+.empty-images .empty-icon { font-size:30px; margin-bottom:8px; opacity:0.4; }
+
+/* --- Selection Bar --- */
+.selection-bar { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--bg-card); border:1px solid var(--accent-primary); border-radius:var(--radius-xl); padding:10px 20px; display:flex; align-items:center; gap:14px; box-shadow:var(--shadow-lg), var(--shadow-glow); z-index:150; transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.selection-bar.visible { transform:translateX(-50%) translateY(0); }
+.selection-bar .sel-count { font-size:13px; font-weight:600; color:var(--text-accent); }
+
+/* --- Print --- */
+.print-header { display:none; }
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+@media print {
+  * { box-sizing:border-box!important; }
+  body { background:white!important; color:black!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; margin:0!important; padding:0!important; }
+  .header,.search-section,.stats-bar,.selection-bar,.modal-header,.modal-footer,.view-tabs,.tips-section,.no-print,.admin-indicator { display:none!important; }
+  .main-content, .cards-grid, .question-card { display:none!important; }
+  #viewerModal { display:none!important; }
+  #printModal { display:block!important; position:static!important; background:none!important; backdrop-filter:none!important; padding:0!important; margin:0!important; inset:auto!important; z-index:auto!important; }
+  #printModal > .modal-content { display:block!important; max-width:none!important; width:100%!important; max-height:none!important; border:none!important; border-radius:0!important; box-shadow:none!important; background:white!important; padding:0!important; margin:0!important; }
+  #printBody { padding:0!important; overflow:visible!important; }
+  #printBody img { width:100%!important; height:auto!important; display:block!important; margin:0!important; padding:0!important; border:none!important; border-radius:0!important; }
+  .print-header { display:block!important; text-align:center; margin:0 0 4px!important; font-size:14px; font-weight:bold; color:black; border-bottom:1px solid #999; padding-bottom:3px; }
+}
+
+/* --- Responsive --- */
+@media (max-width:768px) {
+  .cards-grid { grid-template-columns:1fr; }
+  .gallery-pair { grid-template-columns:1fr; }
+  .logo-sub { display:none; }
+  .search-section { padding:10px 14px; }
+  .main-content { padding:10px; }
+  .selection-bar { left:10px; right:10px; transform:translateX(0) translateY(100px); justify-content:space-between; }
+  .selection-bar.visible { transform:translateX(0) translateY(0); }
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🧪</span>
+        <span class="logo-text">化学DB</span>
+        <span class="logo-sub">共通テスト問題データベース</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-icon" id="adminToggle" onclick="toggleAdminMode()" title="管理モード">🔧</button>
+        <button class="btn btn-ghost btn-icon" id="selectModeBtn" onclick="toggleSelectMode()" title="選択モード">☐</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Search Section -->
+  <section class="search-section no-print">
+    <div class="search-inner">
+      <div class="filter-row">
+        <span class="filter-label">出版社</span>
+        <div class="filter-chips" id="publisherFilters"></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">年度</span>
+        <div class="filter-chips" id="yearFilters"></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">科目</span>
+        <div class="filter-chips" id="subjectFilters"></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">回</span>
+        <div class="filter-chips" id="roundFilters"></div>
+      </div>
+
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="タグや単元で検索（例: 酸化還元, 有機化合物, 化学平衡）">
+        <button class="clear-btn" id="clearSearch" onclick="clearSearch()">✕</button>
+      </div>
+
+      <div class="filter-row">
+        <span class="filter-label">単元</span>
+        <div class="filter-chips" id="unitFilters"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="stats-bar no-print">
+      <span class="stats-text" id="statsText"><strong>0</strong> 件の問題</span>
+      <div class="stats-actions">
+        <button class="btn btn-secondary btn-icon" onclick="toggleAllSelect()" title="すべて選択/解除">📋</button>
+      </div>
+    </div>
+    <div class="cards-grid" id="cardsGrid"></div>
+    <div class="no-results" id="noResults" style="display:none;">
+      <div class="no-results-icon">🔍</div>
+      <h3>一致する問題が見つかりません</h3>
+      <p>検索条件を変更してお試しください</p>
+    </div>
+  </main>
+
+  <!-- Selection Bar -->
+  <div class="selection-bar" id="selectionBar">
+    <span class="sel-count" id="selCount">0 件選択中</span>
+    <button class="btn btn-primary" onclick="printSelected()">🖨️ 印刷</button>
+    <button class="btn btn-secondary" onclick="viewSelected()">👁️ プレビュー</button>
+    <button class="btn btn-ghost" onclick="clearSelection()">✕ 解除</button>
+  </div>
+
+  <!-- Admin Mode Indicator -->
+  <div class="admin-indicator" id="adminIndicator">
+    🔧 管理モード — 画像をクリックして差し替え / ドラッグ&amp;ドロップ / Ctrl+Vでペースト
+  </div>
+
+  <!-- Modal: Question Viewer -->
+  <div class="modal-overlay" id="viewerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle"></div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <div class="view-tabs">
+          <button class="view-tab active" data-view="pair" onclick="switchView('pair')">📖 問題＋解答</button>
+          <button class="view-tab" data-view="problem" onclick="switchView('problem')">📝 問題のみ</button>
+          <button class="view-tab" data-view="answer" onclick="switchView('answer')">✅ 解答のみ</button>
+        </div>
+        <button class="btn btn-primary" onclick="printCurrent()">🖨️ 印刷</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print Modal -->
+  <div class="modal-overlay" id="printModal">
+    <div class="modal-content">
+      <div class="print-header" id="printHeader"></div>
+      <div class="modal-body" id="printBody"></div>
+    </div>
+  </div>
+
+  <script>
+// === registry.js ===
+// =============================================================================
+// 共通テスト化学データベース - 問題集レジストリ
+// =============================================================================
+
+var BOOK_REGISTRY = [
+  {
+    id: "sundai_2025_chem",
+    publisher: "駿台",
+    year: 2025,
+    subject: "化学",
+    title: "2025年 駿台実戦問題集 化学",
+    dataPath: "data/sundai_2025_chem/meta.js",
+    enabled: true
+  },
+  {
+    id: "sundai_2025_chemkiso",
+    publisher: "駿台",
+    year: 2025,
+    subject: "化学基礎",
+    title: "2025年 駿台実戦問題集 化学基礎",
+    dataPath: "data/sundai_2025_chemkiso/meta.js",
+    enabled: true
+  },
+  {
+    id: "sundai_2024_chem",
+    publisher: "駿台",
+    year: 2024,
+    subject: "化学",
+    title: "2024年 駿台実戦問題集 化学",
+    dataPath: "data/sundai_2024_chem/meta.js",
+    enabled: true
+  },
+  {
+    id: "sundai_2024_chemkiso",
+    publisher: "駿台",
+    year: 2024,
+    subject: "化学基礎",
+    title: "2024年 駿台実戦問題集 化学基礎",
+    dataPath: "data/sundai_2024_chemkiso/meta.js",
+    enabled: true
+  },
+  {
+    id: "kakomon_chem_2024",
+    publisher: "過去問",
+    year: 2024,
+    subject: "化学",
+    title: "2024年度 共通テスト過去問 化学",
+    dataPath: "data/kakomon_chem/meta.js",
+    enabled: true
+  },
+  {
+    id: "kakomon_chem_2025",
+    publisher: "過去問",
+    year: 2025,
+    subject: "化学",
+    title: "2025年度 共通テスト過去問 化学",
+    dataPath: "data/kakomon_chem/meta.js",
+    enabled: true
+  }
+];
+
+// 出版社カラーテーマ
+var PUBLISHER_THEMES = {
+  "駿台": { color: "#10b981", bg: "rgba(16,185,129,0.15)", border: "rgba(16,185,129,0.3)", icon: "🟢" },
+  "Z会":  { color: "#3b82f6", bg: "rgba(59,130,246,0.15)", border: "rgba(59,130,246,0.3)", icon: "🔵" },
+  "河合塾": { color: "#ef4444", bg: "rgba(239,68,68,0.15)", border: "rgba(239,68,68,0.3)", icon: "🔴" },
+  "東進": { color: "#f59e0b", bg: "rgba(245,158,11,0.15)", border: "rgba(245,158,11,0.3)", icon: "🟡" },
+  "代ゼミ": { color: "#8b5cf6", bg: "rgba(139,92,246,0.15)", border: "rgba(139,92,246,0.3)", icon: "🟣" },
+  "過去問": { color: "#d97706", bg: "rgba(217,119,6,0.15)", border: "rgba(217,119,6,0.3)", icon: "⭐" }
+};
+
+// 科目一覧
+var SUBJECTS = ["化学", "化学基礎"];
+
+// 単元カテゴリ分類（共通テスト化学の主要分野）
+var TAG_CATEGORIES = {
+  "物質の構成": { color: "#6366f1", icon: "⚛️" },
+  "物質の変化": { color: "#8b5cf6", icon: "🔥" },
+  "無機物質": { color: "#14b8a6", icon: "🪨" },
+  "有機化合物": { color: "#22c55e", icon: "🧪" },
+  "高分子化合物": { color: "#f97316", icon: "🔬" },
+  "化学反応とエネルギー": { color: "#ef4444", icon: "⚡" },
+  "反応速度と化学平衡": { color: "#ec4899", icon: "⚖️" },
+  "酸と塩基": { color: "#3b82f6", icon: "💧" },
+  "酸化還元": { color: "#f59e0b", icon: "🔋" },
+  "気体の法則": { color: "#06b6d4", icon: "💨" },
+  "溶液の性質": { color: "#a855f7", icon: "🫧" },
+  "結晶構造": { color: "#64748b", icon: "💎" }
+};
+
+
+// === meta.js ===
+// =============================================================================
+// 駿台 2025年 実戦問題集 化学 — メタデータ
+// =============================================================================
+// 各回5問×5回 = 25問
+
+var BOOK_DATA_sundai_2025_chem = {
+  id: "sundai_2025_chem",
+  publisher: "駿台",
+  year: 2025,
+  subject: "化学",
+  title: "2025年 駿台実戦問題集 化学",
+  basePath: "data/sundai_2025_chem/",
+  rounds: [
+    // ===================== 第1回 =====================
+    {
+      id: "round1", title: "第1回",
+      questions: [
+        { id: "r1q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["酸と塩基", "pH", "中和滴定曲線", "グラフ読み取り", "計算問題"], "問2": ["酸と塩基", "塩の加水分解", "弱酸の遊離", "電離度", "計算問題"] }, aggregate_tags: ["酸と塩基", "電離平衡", "計算問題", "グラフ・表の読み取り"] },
+          tips: { topic: "酸・塩基の電離と中和滴定、塩の性質", stumbling_points: ["強酸と弱酸の希釈時において、弱酸は電離度が変化することを忘れ、直感的にpHを求めて誤答してしまう。", "強酸と弱酸の混合水溶液の滴定曲線から、どちらの酸が先に中和されているかの判断ができず、mol計算が立式できない。", "弱酸の遊離反応において、複数の酸の強弱関係を反応式から正しく読み取れない。"], key_to_start: "強酸は「完全電離（α≒1）」、弱酸は「電離度を考慮」することを大前提とし、中和反応や弱酸の遊離では「どの物質から先に反応するか」を物質量(mol)ベースで整理する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["酸化還元反応", "酸化剤・還元剤", "正誤判定"], "問2": ["電池と電気分解", "電池", "酸化還元反応", "実験考察"], "問3": ["無機物質", "金属の還元", "合金", "グラフ読み取り", "計算問題"] }, aggregate_tags: ["酸化還元反応", "電池と電気分解", "無機物質", "実験考察", "グラフ読み取り"] },
+          tips: { topic: "酸化還元反応の基本と電池・金属精錬（合金）への応用", stumbling_points: ["酸化剤・還元剤の定義（自身が酸化されるか、還元されるか）が混乱し、反応式から正しく見極められない。", "身近な金属を用いた電池の構成において、イオン化傾向と負極・正極の対応関係を間違える。", "見慣れない合金の融点グラフから、成分物質の質量比を利用して数値を読み取るステップでつまずく。"], key_to_start: "まずは反応前後の各原子の「酸化数の変化」を書き出し、電子(e⁻)の授受を明確にすること。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "極性分子", "電子式"], "問2": ["物質の構成", "イオン結晶", "結晶格子"], "問3": ["化学結合", "電気陰性度", "表の読み取り"], "問4": ["物質の状態と平衡", "理想気体と実在気体", "気体の状態方程式", "グラフ読み取り", "計算問題"] }, aggregate_tags: ["物質の構成", "化学結合", "物質の状態と平衡", "気体の法則", "グラフ・表の読み取り"] },
+          tips: { topic: "分子の極性・結晶構造、化学結合の性質と気体の振る舞い", stumbling_points: ["単位格子の原子数やイオン間距離を求める際、幾何学的な関係を正しく把握できない。", "電気陰性度の差と結合の性質の相関関係を表のデータから読み落とす。", "実在気体の圧縮率因子のグラフで理想気体からのズレを定量的に計算できない。"], key_to_start: "結晶格子は図を分割し寄与分を丁寧に数え上げる。気体はPV=nRTを書き出しグラフの値を代入して比較する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "溶解エンタルピー", "反応エンタルピー", "比熱計算", "グラフ読み取り", "計算問題"], "問2": ["熱化学", "光化学反応", "エネルギー変換効率", "計算問題"] }, aggregate_tags: ["熱化学", "反応エンタルピー", "実験考察", "グラフ読み取り", "計算問題"] },
+          tips: { topic: "反応エンタルピーの定義と熱量計算、光エネルギーの変換", stumbling_points: ["溶解時の温度をグラフから読み取る際、熱放散の補正の考え方が理解できない。", "熱量計算(Q=mcΔT)で溶液全体の質量を忘れる・単位変換ミス。", "光→化学エネルギーの変換効率で反応式の係数を考慮し忘れる。"], key_to_start: "吸熱(+)か発熱(-)かの符号に注意。比熱の公式に単位を書き込み次元を合わせることを徹底する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の状態と平衡", "コロイド", "正誤判定"], "問2": ["物質の状態と平衡", "溶液の性質", "蒸気圧降下", "沸点上昇", "グラフ読み取り"], "問3": ["物質の状態と平衡", "気体の溶解度", "ヘンリーの法則", "実験考察", "計算問題"] }, aggregate_tags: ["物質の状態と平衡", "溶液の性質", "コロイド", "気体の溶解度", "実験考察", "計算問題"] },
+          tips: { topic: "溶液の性質（コロイド、蒸気圧降下・沸点上昇、気体の溶解度）", stumbling_points: ["沸点上昇の比較で電解質の電離後の全粒子数を考慮し忘れる。", "ヘンリーの法則で圧力下の体積が一定になる理屈が分からない。", "気体の溶解実験で全物質量の一定部分と溶解部分の切り分けができない。"], key_to_start: "沸点上昇や凝固点降下は「全粒子の質量モル濃度」で比較。気体の溶解度はPV=nRTでmolベースで整理する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第2回 =====================
+    {
+      id: "round2", title: "第2回",
+      questions: [
+        { id: "r2q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "元素の性質", "周期表"], "問2": ["物質の状態と平衡", "蒸気圧", "気体の状態方程式", "グラフ読み取り", "計算問題"], "問3": ["物質の状態と平衡", "溶液の性質", "溶解度", "計算問題"], "問4": ["物質の状態と平衡", "溶液の性質", "コロイド", "正誤判定"] }, aggregate_tags: ["物質の構成", "物質の状態と平衡", "溶液の性質", "計算問題", "グラフ・表の読み取り"] },
+          tips: { topic: "物質の状態と溶液の性質（蒸気圧、溶解度、コロイド）", stumbling_points: ["蒸気圧の測定実験で大気圧と水銀柱の関係を正しく数式化できない。", "冷却による結晶析出量の計算で飽和溶液の質量比がうまく使えない。"], key_to_start: "蒸気圧は「管内気体の圧力＋水銀柱=大気圧」の図を描く。溶解度の析出量計算は比例式を立てる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "反応エンタルピー", "ヘスの法則", "電池", "計算問題", "グラフ読み取り"], "問2": ["電池と電気分解", "電気分解", "ファラデーの法則", "無機物質", "計算問題"] }, aggregate_tags: ["熱化学", "電池と電気分解", "反応エンタルピー", "計算問題", "グラフ・表の読み取り"] },
+          tips: { topic: "熱化学（エンタルピー）と電池・電気分解", stumbling_points: ["生成エンタルピーから反応エンタルピーを求める際に符号を間違える。", "並列電気分解で全電気量の分配を正確に追えない。"], key_to_start: "エンタルピー図を描いて視覚的に足し引き。電気分解は「全e⁻のmol＝各極の反応e⁻の和」。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["反応速度と化学平衡", "化学平衡", "ルシャトリエの原理", "平衡定数", "グラフ読み取り"], "問2": ["反応速度と化学平衡", "溶解平衡", "溶解度積", "弱酸の遊離", "計算問題"] }, aggregate_tags: ["反応速度と化学平衡", "溶解平衡", "グラフ・表の読み取り", "計算問題"] },
+          tips: { topic: "化学平衡と溶解平衡（溶解度積）", stumbling_points: ["平衡定数と1/Tのグラフで温度上昇によるKの増減を逆に読む。", "弱酸の塩の溶解平衡で酸添加時の遊離反応を考慮できない。"], key_to_start: "グラフの横軸(1/T)が小さい＝Tが高い。難溶性塩に酸を加える問題は弱酸の遊離→ルシャトリエで判定。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "非金属元素", "典型金属・遷移金属"], "問2": ["無機物質", "金属イオンの分離・検出", "酸と塩基"], "問3": ["無機物質", "金属イオンの分離・検出", "炎色反応", "実験考察"] }, aggregate_tags: ["無機物質", "非金属元素", "金属イオンの分離・検出", "実験考察"] },
+          tips: { topic: "無機物質の性質と金属イオンの系統分析", stumbling_points: ["希硝酸と希塩酸の酸化力の違いを忘れ銅との反応性を正しく判別できない。", "複数の金属イオン混合液で過剰量で錯イオンを形成する金属を混同。"], key_to_start: "イオン化傾向と酸化力のある酸との反応をセットで覚える。沈殿の再溶解パターンを整理する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族", "カルボン酸", "正誤判定"], "問2": ["有機化合物", "脂肪族", "アルケン", "構造決定", "計算問題"], "問3": ["有機化合物", "脂肪族", "アルカン", "置換反応", "異性体"] }, aggregate_tags: ["有機化合物", "脂肪族", "構造決定", "計算問題"] },
+          tips: { topic: "脂肪族炭化水素・カルボン酸の反応と構造決定", stumbling_points: ["アルケンへのハロゲン付加計算で増加質量＝付加ハロゲン質量に気づけない。", "アルカンの光置換反応で異性体を数え落とす/重複して数える。"], key_to_start: "付加反応の量論は増加質量＝付加物質の質量。異性体は炭素骨格→対称性でグループ分けしてから数える。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第3回 =====================
+    {
+      id: "round3", title: "第3回",
+      questions: [
+        { id: "r3q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "混合物の分離"], "問2": ["物質の状態と平衡", "溶液の性質", "コロイド", "水和"], "問3": ["物質の状態と平衡", "理想気体の状態方程式", "ボイル・シャルルの法則", "グラフ読み取り", "計算問題"], "問4": ["物質の状態と平衡", "溶液の性質", "溶解度", "結晶の析出", "計算問題"], "問5": ["物質の構成", "金属結晶", "結晶格子"] }, aggregate_tags: ["物質の構成", "物質の状態と平衡", "溶液の性質", "気体の法則", "計算問題", "グラフ・表の読み取り"] },
+          tips: { topic: "気体の法則と溶液の性質、結晶格子", stumbling_points: ["気体のP-Vグラフの状態変化をボイル・シャルルの法則と結びつけられない。", "水和物析出の溶解度計算で結晶に含まれる水を忘れ無水物のみで立式してしまう。"], key_to_start: "気体はT,P,Vのどれが一定かを意識しPV=nRTを変形。水和物析出は溶質/溶液の比を一定として立式する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "典型金属", "アルカリ土類金属", "沈殿反応", "実験考察"], "問2": ["無機物質", "典型金属", "両性元素", "化学反応式", "計算問題"], "問3": ["無機物質", "非金属元素", "ケイ素", "共有結合の結晶", "構造式"] }, aggregate_tags: ["無機物質", "典型金属", "非金属元素", "化学反応式", "実験考察", "計算問題"] },
+          tips: { topic: "無機物質（2族元素、両性元素、ケイ素とその化合物）", stumbling_points: ["MgとBa等の水への反応性の違いや硫酸塩の沈殿有無を正確に暗記できていない。", "両性金属と塩基の反応式を完成させられず量論計算に進めない。", "ケイ酸イオンの構造図から繰り返し単位を見抜いて組成式と電荷を決定できない。"], key_to_start: "イオン化傾向と水・酸との反応性表を書けるようにする。複雑なイオンの構造図は繰り返し単位内の原子数を数え電荷を計算する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "反応エンタルピー", "ヘスの法則", "比熱計算", "グラフ読み取り", "計算問題"], "問2": ["電池と電気分解", "電池", "電気分解", "電解精錬", "ファラデーの法則", "計算問題"] }, aggregate_tags: ["熱化学", "反応エンタルピー", "電池と電気分解", "計算問題", "グラフ・表の読み取り"] },
+          tips: { topic: "反応エンタルピーとヘスの法則、電池・電気分解の原理と計算", stumbling_points: ["生成/燃焼エンタルピーの定義を混同しヘスの法則の符号を間違える。", "実験グラフから溶解時の最高温度を時間0に外挿する意味が理解できない。", "電解精錬で不純物がイオン化傾向で溶け出すか陽極泥になるかを整理できていない。"], key_to_start: "エンタルピー図を描き矢印の向きで立式。電気分解は陽極・陰極の反応式を書き出しe⁻のmol比を明確にする。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["反応速度と化学平衡", "反応速度", "グラフ読み取り"], "問2": ["反応速度と化学平衡", "化学平衡", "活性化エネルギー", "正誤判定"], "問3": ["酸と塩基", "電離平衡", "滴定曲線", "緩衝液", "グラフ・表の読み取り", "計算問題"] }, aggregate_tags: ["反応速度と化学平衡", "酸と塩基", "電離平衡", "緩衝液", "グラフ・表の読み取り", "計算問題"] },
+          tips: { topic: "反応速度、化学平衡、および電離平衡（緩衝液）", stumbling_points: ["濃度-時間グラフから変化量ではなく濃度そのもので係数比を求めてしまう。", "緩衝液のpH計算で弱酸と塩の濃度比の立式ができない。", "滴定曲線上の半中和点の意味を見落とす。"], key_to_start: "係数比はグラフの「濃度の変化量」の比から。緩衝液は[H⁺]=Ka×(C₁/C₂)の形に変形する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族", "異性体", "構造異性体", "幾何異性体"], "問2": ["有機化合物", "脂肪族", "炭化水素", "構造と性質", "正誤判定"], "問3": ["有機化合物", "脂肪族", "アルコール", "脱水反応", "酸化反応"], "問4": ["有機化合物", "脂肪族", "アルコール", "エーテル", "有機合成"], "問5": ["有機化合物", "高分子化合物", "セッケン・合成洗剤", "生活と化学", "正誤判定"] }, aggregate_tags: ["有機化合物", "脂肪族", "異性体", "有機反応", "生活と化学"] },
+          tips: { topic: "脂肪族化合物の反応・異性体と生活の化学", stumbling_points: ["アルケンの異性体でシス・トランス異性体の存在を忘れて数え落とす。", "アルコールの脱水で温度条件による生成物の違いを混同する。", "左右非対称なエーテルの合成経路を逆算できない。"], key_to_start: "異性体は炭素骨格→二重結合位置→置換基位置の順で描き出し最後にシス・トランスをチェック。反応条件と生成物を必ずセットで暗記する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第4回 =====================
+    {
+      id: "round4", title: "第4回",
+      questions: [
+        { id: "r4q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "結晶の分類", "共有結合の結晶"], "問2": ["物質の構成", "イオン結晶", "結晶格子"], "問3": ["物質の状態と平衡", "理想気体の状態方程式", "気体の密度", "計算問題"], "問4": ["物質の状態と平衡", "混合気体", "気液平衡", "飽和蒸気圧", "計算問題"], "問5": ["物質の状態と平衡", "溶液の性質", "凝固点降下", "冷却曲線", "グラフ読み取り", "計算問題"] }, aggregate_tags: ["物質の構成", "物質の状態と平衡", "溶液の性質", "気体の法則", "計算問題", "グラフ・表の読み取り"] },
+          tips: { topic: "結晶の構造と気体・溶液の性質", stumbling_points: ["燃焼後の混合気体で水の気液平衡を考慮し忘れる。", "冷却曲線で凝固開始点を過冷却の最下点と読み間違える。", "沈殿生成を伴う凝固点降下で除外イオンを差し引かない。"], key_to_start: "気体反応は反応前・変化量・反応後のmol表を作り水生成時は飽和蒸気圧をチェック。凝固点降下は全粒子の質量モル濃度を求めること。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "溶解エンタルピー", "中和エンタルピー", "計算問題"], "問2": ["反応速度と化学平衡", "光化学反応", "連鎖反応", "環境と化学"], "問3": ["酸と塩基", "弱酸の電離", "滴定曲線", "緩衝液", "塩の加水分解", "グラフ読み取り", "計算問題"] }, aggregate_tags: ["熱化学", "反応速度と化学平衡", "酸と塩基", "滴定曲線", "計算問題", "グラフ・表の読み取り"] },
+          tips: { topic: "熱化学計算、光化学反応、および弱酸の中和滴定と緩衝液", stumbling_points: ["溶解と中和が同時に起こる反応でmolの基準を取り違える。", "滴定曲線の各ポイントで溶液中の主要物質を把握できず近似式を誤用。"], key_to_start: "熱量計算は実際に反応したmolを正確に把握。緩衝液のpHは弱酸と塩の濃度比から近似式で求める。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "典型金属", "アルカリ金属", "正誤判定"], "問2": ["無機物質", "非金属元素", "典型元素の性質", "酸化物"], "問3": ["反応速度と化学平衡", "溶解平衡", "溶解度積", "対数グラフ", "グラフ読み取り", "計算問題"] }, aggregate_tags: ["無機物質", "典型金属", "非金属元素", "反応速度と化学平衡", "溶解平衡", "グラフ・表の読み取り", "計算問題"] },
+          tips: { topic: "典型元素の性質と溶解平衡（溶解度積の対数グラフ）", stumbling_points: ["溶解度積の対数グラフで1次関数の式を導出できない。", "混合水溶液の沈殿開始条件で混合による濃度低下を忘れる。"], key_to_start: "Kspの両辺の対数をとり水のイオン積を代入→y=ax+bの形に整理する。沈殿判定は混合直後の濃度で比較する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族", "アルコール", "官能基の検出", "ヨードホルム反応"], "問2": ["有機化合物", "脂肪族", "異性体", "構造異性体"], "問3": ["有機化合物", "芳香族", "アミン", "アゾ化合物", "ジアゾ化・カップリング"], "問4": ["有機化合物", "高分子化合物", "脂質", "油脂", "けん化", "計算問題"] }, aggregate_tags: ["有機化合物", "脂肪族", "芳香族", "高分子化合物", "油脂", "構造決定", "計算問題"] },
+          tips: { topic: "脂肪族・芳香族化合物の反応と油脂の構造計算", stumbling_points: ["CnH2nの構造異性体でシクロアルカンを見落とす。", "油脂の二重結合数計算でけん化にKOH3mol必要の関係を忘れる。"], key_to_start: "異性体は不飽和度を計算し全て図示する。油脂はけん化KOHのmolからモル質量を求めることが第一歩。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "高分子化合物", "合成樹脂", "正誤判定"], "問2": ["有機化合物", "高分子化合物", "合成樹脂", "加水分解", "計算問題"], "問3": ["有機化合物", "高分子化合物", "合成樹脂", "プラスチックの性質", "実験考察"] }, aggregate_tags: ["有機化合物", "高分子化合物", "合成樹脂", "実験考察", "計算問題"] },
+          tips: { topic: "合成樹脂（プラスチック）の性質、分解反応、材質の識別", stumbling_points: ["PETの分解反応式を自力で書けずモル比を見失う。", "燃焼時のすすとベンゼン環の有無の相関を知らない。"], key_to_start: "高分子は単量体の構造を思い出し結合の切断箇所を図示して反応式を立てる。プラスチックの構造式は分類して暗記する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第5回 =====================
+    {
+      id: "round5", title: "第5回",
+      questions: [
+        { id: "r5q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "分子結晶", "極性分子"], "問2": ["物質の状態と平衡", "ボイル・シャルルの法則", "アボガドロの法則", "気体の状態方程式"], "問3": ["物質の状態と平衡", "蒸気圧曲線", "沸点", "分圧", "気液平衡", "計算問題"], "問4": ["物質の構成", "結晶格子", "イオン結晶", "組成式", "配位数"] }, aggregate_tags: ["物質の構成", "物質の状態と平衡", "気体の法則", "蒸気圧", "結晶格子", "グラフ・表の読み取り", "計算問題"] },
+          tips: { topic: "気体の法則、蒸気圧、および結晶格子", stumbling_points: ["混合気体の圧縮でどちらが先に飽和蒸気圧に達するか読み取れない。", "単位格子内の粒子数で頂点・面心・中心の寄与分を間違える。"], key_to_start: "蒸気圧曲線から各物質の飽和蒸気圧を読み取り「分圧が飽和蒸気圧に達した物質から凝縮」のルールを適用する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "反応エンタルピー", "生成エンタルピー", "ヘスの法則", "計算問題"], "問2": ["電池と電気分解", "電気分解の直列つなぎ", "ファラデーの法則", "気体の状態方程式", "計算問題"], "問3": ["酸と塩基", "中和滴定", "空試験（ブランクテスト）", "緩衝液", "近似計算", "計算問題"], "問4": ["反応速度と化学平衡", "反応速度式", "平衡定数", "ルシャトリエの原理", "計算問題"] }, aggregate_tags: ["熱化学", "電池と電気分解", "酸と塩基", "反応速度と化学平衡", "計算問題"] },
+          tips: { topic: "反応エンタルピー、電気分解、中和滴定と化学平衡", stumbling_points: ["直列電気分解で同じe⁻のmolが流れる大原則を忘れ別々に計算。", "空試験(ブランク)の補正分を引き忘れて濃度を計算。", "速度定数kと平衡定数KのK=k₁/k₂の関係を導出できない。"], key_to_start: "直列電気分解は「e⁻のmolはどこでも共通」。中和滴定は全体-ブランクのNaOH量。平衡はv₁=v₂からK=k₁/k₂。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "非金属元素", "ケイ素", "正誤判定"], "問2": ["無機物質", "金属イオンの分離・検出", "沈殿反応", "炎色反応", "系統分析"], "問3": ["無機物質", "硫黄とその化合物", "接触法", "硫酸", "電離平衡", "計算問題"] }, aggregate_tags: ["無機物質", "非金属元素", "金属イオンの分離・検出", "工業的製法", "計算問題"] },
+          tips: { topic: "ケイ素・硫黄の無機化学と金属イオンの系統分析", stumbling_points: ["H2Sによる沈殿が液性で変わることを整理できていない。", "多段階電離で第1電離の[H⁺]が第2電離の初期濃度に含まれる。"], key_to_start: "H2Sの沈殿生成条件(液性依存)とNH3/NaOH過剰時の錯イオン形成を表で暗記。多段階電離はICE表で整理する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族", "官能基の検出", "銀鏡反応", "ヨードホルム反応", "エステル"], "問2": ["有機化合物", "芳香族", "芳香族炭化水素", "異性体", "正誤判定"], "問3": ["有機化合物", "高分子化合物", "合成高分子", "ナイロン", "ポリエステル", "正誤判定"], "問4": ["有機化合物", "高分子化合物", "糖類", "デンプン", "グルコース", "発酵", "構造決定", "計算問題"] }, aggregate_tags: ["有機化合物", "脂肪族", "芳香族", "高分子化合物", "糖類", "構造決定", "計算問題"] },
+          tips: { topic: "有機化合物の反応・構造決定と糖類（デンプン）", stumbling_points: ["加水分解で生じるアルコールとカルボン酸から銀鏡反応・ヨードホルム反応の条件を逆算できない。", "デンプンのメチル化実験でグリコシド結合位置と得られるメチル化単糖の対応が付けられない。"], key_to_start: "エステルの構造決定はR-COO-R'+H2O→R-COOH+R'-OHの基本式。糖類のメチル化は結合に使われていない-OHだけが-OCH3になるルール。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "典型金属", "アルカリ金属", "アルカリ土類金属", "正誤判定"], "問2": ["物質の状態と平衡", "水和物", "物質量", "計算問題"], "問3": ["熱化学", "溶解エンタルピー", "溶液の性質", "凝固点降下", "融解エンタルピー", "比熱計算", "計算問題"] }, aggregate_tags: ["無機物質", "典型金属", "物質の状態と平衡", "熱化学", "溶液の性質", "計算問題"] },
+          tips: { topic: "カルシウム化合物の性質、水和物の計算と凝固点降下・熱量計算", stumbling_points: ["アルカリ金属とアルカリ土類金属の塩基性の比較で価数の違いを考慮しない。", "氷の融解と温度上昇が同時に起こるエネルギー収支の等式を立てられない。"], key_to_start: "塩基性の強さは[OH⁻]=モル濃度×電離度×価数で比較。熱量計算は供給源（溶解エンタルピー）と消費先（融解熱+温度上昇）に分けてQ=mcΔTで全質量を代入する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    }
+  ]
+};
+
+
+// === meta.js ===
+// =============================================================================
+// 駿台 2025年 実戦問題集 化学基礎 — メタデータ
+// =============================================================================
+// 各回2問×5回 = 10問
+
+var BOOK_DATA_sundai_2025_chemkiso = {
+  id: "sundai_2025_chemkiso",
+  publisher: "駿台",
+  year: 2025,
+  subject: "化学基礎",
+  title: "2025年 駿台実戦問題集 化学基礎",
+  basePath: "data/sundai_2025_chemkiso/",
+  rounds: [
+    // ===================== 第1回 =====================
+    {
+      id: "round1", title: "第1回",
+      questions: [
+        { id: "r1q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["物質の構成", "元素の性質", "物質の状態"], "問2": ["物質の構成", "同位体", "半減期", "正誤判定"], "問3": ["化学結合", "分子の極性", "水素結合", "分子間力", "グラフ読み取り"], "問4": ["化学結合", "結晶の分類", "配位結合"], "問5": ["酸化還元反応", "酸化剤・還元剤", "ハロゲン"], "問6": ["酸化還元反応", "酸化還元滴定", "希釈", "計算問題"], "問7": ["酸化還元反応", "電池", "鉛蓄電池", "計算問題"], "問8": ["化学と人間生活", "プラスチック", "ファインセラミックス"] }, aggregate_tags: ["物質の構成", "化学結合", "酸化還元反応", "化学と人間生活", "グラフ読み取り", "計算問題"] },
+          tips: { topic: "原子・分子の性質、化学結合、酸化還元反応の基本と量的関係", stumbling_points: ["水素化合物の沸点グラフにおいて、極性の有無や水素結合の影響を読み取れず、単純に分子量のみで大小を判断してしまう。", "酸化還元滴定の計算で、過酸化水素と過マンガン酸カリウムの電子の授受の比を間違える・希釈倍率を掛け忘れる。", "鉛蓄電池の放電における量論計算で、反応式全体の係数とe⁻のmol関係を対応させられない。"], key_to_start: "沸点グラフは「水素結合の有無」と「極性の有無」に着目してグループ分け。酸化還元滴定は半反応式を書き出し「酸化剤のe⁻mol＝還元剤のe⁻mol」の等式を立てる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["酸と塩基", "酸の価数", "pH", "電離度", "弱酸の遊離", "計算問題"], "問2": ["酸と塩基", "中和滴定", "実験器具", "酸の価数", "実験考察", "計算問題"] }, aggregate_tags: ["酸と塩基", "pHと電離度", "中和滴定", "実験考察", "計算問題"] },
+          tips: { topic: "酸・塩基の性質、pHと電離度、中和滴定の実験考察", stumbling_points: ["pHから電離度を逆算する際、[H⁺]=cαへの代入で指数計算ミス。", "実験器具の用途や名称を混同し正しい組み合わせを選べない。", "分取した際の希釈・分取の倍率を掛け忘れる。"], key_to_start: "[H⁺]=10^(-pH) mol/Lに変換してから[H⁺]=cαに代入。中和計算は「酸の価数×mol＝塩基の価数×mol」を基本に分取割合を組み込む。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第2回 =====================
+    {
+      id: "round2", title: "第2回",
+      questions: [
+        { id: "r2q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["物質の構成", "共有結合の結晶", "正誤判定"], "問2": ["物質の構成", "混合物の分離", "正誤判定"], "問3": ["物質の構成", "同位体", "質量数", "グラフ読み取り"], "問4": ["物質の構成", "イオン半径", "電子配置"], "問5": ["化学結合", "分子の極性", "溶解性"], "問6": ["酸と塩基", "水素イオン濃度", "電離度", "計算問題"], "問7": ["酸化還元反応", "酸化数"], "問8": ["物質量と化学反応式", "化学反応の量的関係", "計算問題"], "問9": ["酸化還元反応", "酸化剤・還元剤", "正誤判定"] }, aggregate_tags: ["物質の構成", "化学結合", "酸と塩基", "酸化還元反応", "物質量計算"] },
+          tips: { topic: "化学基礎の小問集合（物質の構成、化学結合、酸・塩基、酸化還元、物質量計算）", stumbling_points: ["等電子イオンの半径比較で陽子数の影響を逆にとらえる。", "弱酸の電離度や強塩基の[OH⁻]からの変換を忘れモル濃度だけで判断。", "化学反応式の計算でmolへの変換ステップを飛ばす。"], key_to_start: "イオン半径は「電子配置が同じなら陽子数が大きいほど小さい」。濃度は必ず「価数×モル濃度×電離度」で実際の[H⁺]を算出。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["化学結合", "分子の形", "二酸化炭素", "正誤判定"], "問2": ["物質量と化学反応式", "化学反応の量的関係", "グラフ読み取り"], "問3": ["酸と塩基", "実験器具", "塩の性質", "中和滴定", "実験考察", "計算問題"] }, aggregate_tags: ["化学結合", "物質量と化学反応式", "酸と塩基", "中和滴定", "実験考察", "グラフ・表の読み取り"] },
+          tips: { topic: "炭化水素の燃焼と二酸化炭素の性質、および中和滴定の実験考察", stumbling_points: ["混合気体の燃焼グラフで物質量の関係を係数比から導けず直線の傾きを勘で選ぶ。", "塩の分類と弱酸の遊離反応を正しく判断できない。", "実験器具の名称と用途、共洗いの区別がついていない。"], key_to_start: "燃焼のグラフは化学反応式を書き出し「1mol燃やしたときのCO2のmol」で傾きを比較。中和計算は2価の塩基の価数を掛け忘れないように立式する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第3回 =====================
+    {
+      id: "round3", title: "第3回",
+      questions: [
+        { id: "r3q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["物質の構成", "混合物の分離", "クロマトグラフィー"], "問2": ["物質の構成", "同位体", "正誤判定"], "問3": ["化学結合", "配位結合", "分子の形"], "問4": ["化学結合", "結晶の分類", "正誤判定"], "問5": ["物質の構成", "密度", "グラフ読み取り"], "問6": ["酸化還元反応", "生活と化学", "正誤判定"], "問7": ["酸化還元反応", "金属のイオン化傾向", "酸との反応"], "問8": ["熱化学", "反応熱", "計算問題"], "問9": ["酸と塩基", "塩の加水分解", "水溶液の液性"], "問10": ["電池と電気分解", "電池", "二次電池"] }, aggregate_tags: ["物質の構成", "化学結合", "酸化還元反応", "酸と塩基", "グラフ・表の読み取り"] },
+          tips: { topic: "化学基礎の小問集合（物質の構成・結合、酸化還元、酸塩基、電池）", stumbling_points: ["配位結合を含むイオンの形を考える際、非共有電子対の存在を忘れて形を間違える。", "イオン化傾向がHより小さい金属が酸化力のある酸に溶ける例外を覚えきれていない。", "正塩＝中性と勘違いして塩の水溶液の液性を間違える。"], key_to_start: "分子やイオンの形は共有電子対と非共有電子対の合計から予測。塩の水溶液の液性は「元の酸・塩基の強い方の性質が現れる」とルール化して判定する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["物質の構成", "同素体"], "問2": ["酸化還元反応", "酸化数"], "問3": ["酸化還元反応", "酸化還元滴定", "ヨウ素滴定", "ppm", "計算問題"] }, aggregate_tags: ["物質の構成", "酸化還元反応", "酸化還元滴定", "実験考察", "計算問題"] },
+          tips: { topic: "オゾンの性質・生成機構とヨウ素滴定を用いた定量計算", stumbling_points: ["O3→I2→Na2S2O3の連続反応でmolの対応関係が追えなくなる。", "ppmの定義を忘れ体積比や物質量への換算で桁数を間違える。"], key_to_start: "連鎖する反応式は各段の係数比を書き出し通しのmol比を整理してから比例計算。ppmは「10⁻⁶」の割合。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第4回 =====================
+    {
+      id: "round4", title: "第4回",
+      questions: [
+        { id: "r4q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["物質の構成", "無機物質", "金属の製錬", "アルミニウム", "融解塩電解"], "問2": ["物質の構成", "炎色反応", "化学式"], "問3": ["物質の構成", "原子の構造", "ラザフォードの実験", "原子核"], "問4": ["物質の構成", "同位体", "半減期", "放射性同位体", "グラフ読み取り", "計算問題"], "問5": ["物質の状態と平衡", "水和物", "加熱脱水", "物質量", "計算問題"], "問6": ["物質の構成", "周期表", "電子配置", "価電子"], "問7": ["酸化還元反応", "酸化還元反応の判定", "酸化数"], "問8": ["酸化還元反応", "酸化数", "化学反応式の量的関係", "連鎖反応", "計算問題"] }, aggregate_tags: ["物質の構成", "酸化還元反応", "物質量計算", "グラフ・表の読み取り"] },
+          tips: { topic: "原子の構造・周期表から酸化還元、物質量計算までの小問集合", stumbling_points: ["半減期の計算で指数的減衰を一次関数と勘違いしてグラフを読み間違える。", "水和物の加熱脱水で無水物のmolが変化しない原則に気づかない。", "複数の反応式が絡む量的関係で係数比をつなぎ合わせられない。"], key_to_start: "半減期は(1/2)^nで残存割合を計算。水和物の問題は「無水物のmol＝水和物のmol」の等式から。連鎖反応は各ステップの係数比を掛け合わせてmol比を直接求める。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["酸と塩基", "酸の価数", "カルボン酸", "中和滴定", "物質量", "計算問題"], "問2": ["酸と塩基", "pH", "希釈", "水素イオン濃度", "塩の分類", "水溶液の液性", "正誤判定"] }, aggregate_tags: ["酸と塩基", "中和滴定", "pHと電離度", "塩の性質", "計算問題"] },
+          tips: { topic: "酸の価数と中和滴定の計算、pHの性質と塩の分類", stumbling_points: ["構造式からカルボキシ基の数を読み取って価数を決定するプロセスに慣れていない。", "酸性水溶液を極端に薄めた場合にpHが7を超えると誤答。", "塩の分類と水溶液の液性を混同する。"], key_to_start: "中和滴定は構造式から必ず酸の価数を調べる。希釈計算では酸をどれだけ薄めてもpH7を超えないことを思い出す。塩の問題は組成式で分類、元の酸塩基の強弱で液性を判断する二段構え。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第5回 =====================
+    {
+      id: "round5", title: "第5回",
+      questions: [
+        { id: "r5q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["物質の構成", "原子の構造", "同位体", "中性子"], "問2": ["化学結合", "分子の極性", "無極性分子"], "問3": ["物質の構成", "元素の周期表", "アルカリ金属", "正誤判定"], "問4": ["物質量と化学反応式", "化学反応の量的関係", "グラフ読み取り", "計算問題"], "問5": ["化学結合", "共有結合の結晶", "分子結晶", "正誤判定"], "問6": ["物質の構成", "原子量", "同位体", "計算問題"], "問7": ["無機物質", "鉄とその化合物", "酸化還元反応", "酸化数"], "問8": ["酸と塩基", "塩の加水分解", "水溶液の液性"], "問9": ["酸と塩基", "中和滴定", "文字式の計算"] }, aggregate_tags: ["物質の構成", "化学結合", "物質量と化学反応式", "酸と塩基", "グラフ・表の読み取り", "計算問題"] },
+          tips: { topic: "原子の構造・結合から物質量計算、酸・塩基の基本", stumbling_points: ["気体発生量のグラフの折れ曲がりの点の読み取りでどの体積を使うか迷う。", "塩の水溶液の液性を組成式中のHの有無と加水分解の結果で混同する。", "中和滴定の文字式計算で酸と塩基の価数を掛け忘れる。"], key_to_start: "グラフの折れ曲がり＝過不足なく反応した点。その座標を係数比に当てはめる。塩の液性はHの有無ではなく「元の酸と塩基の強弱」で決定する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["無機物質", "ハロゲン", "ヨウ素", "分子の極性"], "問2": ["酸化還元反応", "酸化剤・還元剤", "正誤判定"], "問3": ["酸化還元反応", "ハロゲン", "酸化力の強さ"], "問4": ["酸化還元反応", "酸化還元滴定", "ヨウ素滴定", "実験器具", "実験考察", "計算問題"] }, aggregate_tags: ["酸化還元反応", "酸化還元滴定", "ハロゲン", "実験考察", "計算問題"] },
+          tips: { topic: "ハロゲンの性質と酸化還元滴定（ビタミンCの定量）", stumbling_points: ["ハロゲンの酸化力の強弱を反応式から正確に読み取れず逆にする。", "器具の洗浄方法で共洗いの要否を間違える。", "ビタミンCの半反応式で水素原子の数や電荷のバランスを合わせ忘れる。"], key_to_start: "ハロゲンの酸化力は「単体がイオンになる側」が強い。滴定の計算は「酸化剤のe⁻mol＝還元剤のe⁻mol」の等式を立てることが絶対の基本。" },
+          problemImages: [], answerImages: [] }
+      ]
+    }
+  ]
+};
+
+
+// === meta.js ===
+// =============================================================================
+// 駿台 2024年 共通テスト実践問題集 化学 — メタデータ
+// =============================================================================
+// 各回5問×5回 = 25問
+
+var BOOK_DATA_sundai_2024_chem = {
+  id: "sundai_2024_chem",
+  publisher: "駿台",
+  year: 2024,
+  subject: "化学",
+  title: "2024年 駿台実戦問題集 化学",
+  basePath: "data/sundai_2024_chem/",
+  rounds: [
+    // ===================== 第1回 =====================
+    {
+      id: "round1", title: "第1回",
+      questions: [
+        { id: "r1q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["化学結合", "共有結合", "イオン結合", "配位結合", "結晶の分類", "正誤判定"], "問2": ["状態変化", "熱量", "凝固熱", "蒸発熱"], "問3": ["混合気体", "気体の法則", "分圧", "化学反応と物質量", "計算問題"], "問4": ["結晶格子", "単位格子", "密度", "モル質量", "閃亜鉛鉱型", "計算問題"], "問5": ["溶液の濃度", "溶解度", "析出量", "水和物", "無水物", "グラフ読み取り", "計算問題"] }, aggregate_tags: ["物質の構成", "物質の状態と平衡", "計算問題", "グラフ読み取り"] },
+          tips: { topic: "化学結合・状態変化・気体・結晶・溶液の基礎と計算", stumbling_points: ["気体の燃焼で反応前後の物質量変化の追跡を怠り全圧を間違える", "単位格子の密度計算でZ数の数え間違い", "溶解度の計算で溶媒・溶質・溶液全体の質量の切り分けができない"], key_to_start: "混合気体の反応は「反応前・変化量・反応後」の表を作り、結晶密度は定義式に忠実に代入する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "燃焼熱", "生成熱", "ヘスの法則", "計算問題"], "問2": ["電池と電気分解", "電気分解", "極板反応", "イオン化傾向", "正誤判定"], "問3": ["酸化還元反応", "滴定", "ヨウ素滴定", "物質量と化学反応式", "グラフ読み取り"], "問4": ["反応速度と化学平衡", "化学平衡", "平衡移動", "ルシャトリエの原理", "反応速度", "グラフ読み取り", "実験考察"] }, aggregate_tags: ["熱化学", "電池と電気分解", "酸化還元反応", "反応速度と化学平衡", "グラフ読み取り"] },
+          tips: { topic: "熱化学・電気分解・酸化還元滴定・化学平衡の総合問題", stumbling_points: ["反応熱の公式の符号間違い", "電気分解で電極材質とイオン化傾向の判断順序の勘違い", "平衡移動で温度変化による反応速度の変化をグラフから読み落とす"], key_to_start: "熱化学は公式または連立方程式で確実に立式。化学平衡は「反応前・変化量・平衡時」の表を書き出す。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "遷移金属", "銀とその化合物", "錯イオン", "正誤判定"], "問2": ["無機物質", "典型金属", "ケイ酸塩", "立体構造", "組成式"], "問3": ["無機物質", "金属イオンの分離", "系統分析", "沈殿反応", "硫化物", "水酸化物"], "問4": ["無機物質", "非金属", "リンとその化合物", "同素体", "正誤判定"], "問5": ["無機物質", "窒素とその化合物", "オストワルト法", "物質量と化学反応式", "計算問題"] }, aggregate_tags: ["無機物質", "典型金属", "遷移金属", "非金属", "金属イオンの系統分析", "工業的製法"] },
+          tips: { topic: "無機物質の性質・構造・系統分析・工業的製法", stumbling_points: ["金属イオンの系統分析で液性条件による硫化物沈殿の有無の混同", "Fe3+とFe2+の酸化還元状態の変化と沈殿色の勘違い", "オストワルト法の単位変換ミス"], key_to_start: "工業的製法は一連の反応式を合算し原料と最終生成物のmol比を素早く把握する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "芳香族化合物", "脂肪族化合物", "生活と化学", "正誤判定"], "問2": ["有機化合物", "脂肪族化合物", "アルケン", "付加反応", "幾何異性体", "構造決定", "計算問題"], "問3": ["有機化合物", "アルコール", "フェノール類", "性質と反応", "官能基"], "問4": ["有機化合物", "芳香族化合物", "酸化反応", "ジカルボン酸"], "問5": ["高分子化合物", "合成高分子", "ポリアミド", "ナイロン66", "縮合重合", "計算問題"] }, aggregate_tags: ["有機化合物", "脂肪族化合物", "芳香族化合物", "高分子化合物"] },
+          tips: { topic: "有機化合物と高分子化合物の構造・性質・反応・重合度計算", stumbling_points: ["アルケンへのハロゲン付加で増加質量＝付加ハロゲン質量に気づかない", "繰り返し単位の分子量で縮合の水分子を引き忘れる", "平均重合度と特定結合数の関係の勘違い"], key_to_start: "有機組成計算は一般式を置いて方程式を立てる。高分子はモノマーの構造式を描きHとOHが取れる箇所を可視化する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["電池と電気分解", "ダニエル電池", "イオン化傾向", "ファラデーの法則", "計算問題"], "問2": ["電池と電気分解", "二次電池", "充電"], "問3": ["電池と電気分解", "実用電池", "酸化還元反応", "電気エネルギー", "計算問題"], "問4": ["電池と電気分解", "新型電池", "酸化還元反応", "酸化数", "ファラデーの法則", "実験考察", "計算問題"] }, aggregate_tags: ["電池と電気分解", "酸化還元反応", "実験考察", "計算問題"] },
+          tips: { topic: "各種電池の基本原理とファラデーの法則を用いた電気量計算", stumbling_points: ["電池の充電時の接続や電子の流れの向きの理解不足", "初見の電池の反応式からH+の移動方向を読み間違える", "電流量と時間からe⁻のmolへ変換する際のF定数の割り忘れ"], key_to_start: "電池・電気分解は各極のイオン反応式を書き出し「e⁻ 1molあたり何molの物質が変化するか」を真っ先に特定する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第2回 =====================
+    {
+      id: "round2", title: "第2回",
+      questions: [
+        { id: "r2q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["溶液の濃度", "ppm", "物質量", "単位変換", "計算問題"], "問2": ["混合気体", "燃焼", "物質量と化学反応式", "計算問題"], "問3": ["溶液の性質", "凝固点降下", "電解質と非電解質", "質量モル濃度"], "問4": ["気体の状態方程式", "飽和蒸気圧", "状態変化", "グラフ読み取り", "計算問題"] }, aggregate_tags: ["物質の状態と平衡", "単位変換", "計算問題", "グラフ読み取り"] },
+          tips: { topic: "濃度・気体・溶液の性質と計算", stumbling_points: ["ppmからモル濃度への変換で桁を間違える", "混合気体の燃焼で連立方程式を立てられない", "蒸気圧の問題で気液平衡到達の判断を見落とす"], key_to_start: "気体のグラフ問題は「仮定した分圧」と「飽和蒸気圧」の大小を確認して状態を分岐判断する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["溶液の性質", "浸透圧", "実験考察", "計算問題"], "問2": ["反応速度と化学平衡", "反応速度", "過酸化水素の分解", "濃度変化", "グラフ読み取り", "計算問題"], "問3": ["反応速度と化学平衡", "化学平衡", "ルシャトリエの原理", "錯イオン", "立体構造", "実験考察"], "問4": ["熱化学", "反応熱の計算", "気体の法則", "水素吸蔵合金", "計算問題"] }, aggregate_tags: ["物質の状態と平衡", "反応速度と化学平衡", "熱化学", "実験考察", "計算問題"] },
+          tips: { topic: "反応速度・化学平衡と熱化学・溶液の総合実験", stumbling_points: ["浸透圧のU字管実験で液面差からの圧力換算や体積変化を考慮し忘れる", "純水を加えた平衡移動方向を勘違いする"], key_to_start: "浸透圧は移動した溶媒の体積から平衡後の新モル濃度を再計算。平衡移動は何が変化したかを正確に把握してルシャトリエの原理を適用する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "遷移金属", "酸化チタン", "光触媒", "正誤判定"], "問2": ["無機物質", "金属イオンの分離", "沈殿反応", "錯イオン", "正誤判定"], "問3": ["無機物質", "典型金属", "マグネシウム", "融解塩電解", "結晶格子", "六方最密構造", "計算問題"] }, aggregate_tags: ["無機物質", "典型金属", "遷移金属", "金属イオンの分離", "結晶格子"] },
+          tips: { topic: "無機物質の性質・分離と結晶格子の計算", stumbling_points: ["銀と銅のイオンの沈殿条件と錯イオン生成の混同", "六方最密構造の密度計算で原子数と充填率を間違える"], key_to_start: "金属イオンの分離は各試薬に対する反応をフローチャートで整理しておく。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族化合物", "炭化水素", "結合距離", "正誤判定"], "問2": ["有機化合物", "カルボン酸", "不飽和脂肪酸", "幾何異性体", "光学異性体"], "問3": ["有機化合物", "構造分析", "異性体", "対称性"], "問4": ["高分子化合物", "天然高分子", "糖類", "グリコシド結合", "還元性"], "問5": ["高分子化合物", "核酸", "DNA", "塩基対", "水素結合", "計算問題"] }, aggregate_tags: ["有機化合物", "脂肪族化合物", "芳香族化合物", "天然高分子", "糖類", "核酸"] },
+          tips: { topic: "有機化合物の構造・性質と天然高分子（糖・核酸）", stumbling_points: ["NMRシグナル数を数える際に対称性を見落とす", "DNAの塩基対でA-T(2本)とG-C(3本)の水素結合数の違いを忘れる", "二糖類の還元性をヘミアセタール構造で判定できない"], key_to_start: "H原子の種類は構造式を描き対称面・対称軸を探して同等な位置の原子をグループ分けする。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["高分子化合物", "アミノ酸", "電離平衡", "等電点", "計算問題"], "問2": ["高分子化合物", "アミノ酸", "電荷", "グラフ読み取り"], "問3": ["高分子化合物", "ペプチド", "異性体", "呈色反応", "電気泳動"] }, aggregate_tags: ["高分子化合物", "アミノ酸", "タンパク質", "電離平衡", "計算問題"] },
+          tips: { topic: "アミノ酸の電離平衡とペプチドの性質", stumbling_points: ["等電点計算で複数の電離定数のどれを使うか迷う", "ペプチドの異性体でN末端とC末端の方向性を考慮し忘れる"], key_to_start: "アミノ酸の電離平衡は各pH領域で優勢なイオンを数直線で視覚化し、pKa付近でイオン比が逆転することを意識する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第3回 =====================
+    {
+      id: "round3", title: "第3回",
+      questions: [
+        { id: "r3q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["結晶格子", "ダイヤモンド型構造", "単位格子", "結合距離", "密度", "計算問題"], "問2": ["気体の法則", "蒸気圧", "状態変化", "水銀柱"], "問3": ["熱化学", "反応熱の計算", "生成熱", "ヘスの法則", "計算問題"], "問4": ["反応速度と化学平衡", "反応速度", "過酸化水素の分解", "平均の速さ", "グラフ読み取り", "計算問題"] }, aggregate_tags: ["物質の構成", "物質の状態と平衡", "熱化学", "反応速度", "計算問題", "グラフ読み取り"] },
+          tips: { topic: "結晶構造・蒸気圧・熱化学・反応速度の基礎と計算", stumbling_points: ["ダイヤモンド型格子の結合距離と格子の辺の幾何学的関係を把握しきれない", "蒸気圧と水銀柱の力のつり合いの立式を間違える", "反応速度の計算で体積→mol→濃度変化の係数比を忘れる"], key_to_start: "ダイヤモンド型は小立方体の中心に原子がある。蒸気圧は「大気圧＝水銀柱の圧力＋蒸気圧」の等式を立てる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "金属の反応", "イオン化傾向", "不動態", "酸化還元反応", "計算問題"], "問2": ["無機物質", "金属イオンの分離", "系統分析", "沈殿反応", "錯イオン", "両性金属"], "問3": ["無機物質", "オキソ酸", "酸の強さ", "非金属元素", "電気陰性度", "データ読み取り"] }, aggregate_tags: ["無機物質", "金属の反応", "金属イオンの分離", "酸化還元反応", "計算問題", "データ読み取り"] },
+          tips: { topic: "金属の反応性とイオンの系統分析、オキソ酸の性質", stumbling_points: ["不動態の形成を起こす金属と酸の組み合わせが曖昧", "過剰のNH3で溶ける金属と過剰のNaOHで溶ける金属の混同", "オキソ酸の電離定数と構造の相関を初見データから読み取る焦り"], key_to_start: "金属イオンの分離は試薬の量（少量か過剰か）に注意して錯イオン形成のルールをフローチャートでたどる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["溶液の性質", "溶解度", "析出量", "冷却", "グラフ読み取り", "計算問題"], "問2": ["反応速度と化学平衡", "溶解平衡", "溶解度積", "沈殿の生成条件", "対数グラフ", "グラフ読み取り", "計算問題"] }, aggregate_tags: ["物質の状態と平衡", "反応速度と化学平衡", "溶解度", "溶解度積", "グラフ読み取り", "計算問題"] },
+          tips: { topic: "固体の溶解度と溶解度積のグラフ考察", stumbling_points: ["2つの溶質の溶解度曲線の交点の意味を読み取れない", "溶解度積の対数グラフで目盛りの読み取りや直線の傾きの意味を勘違い", "Kspの式で[Cl⁻]の2乗を忘れる"], key_to_start: "溶解度は必ず水100gあたりに換算。溶解度積はKspの式を先に書き出してから対数目盛りを読む。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族化合物", "アルケン", "オゾン分解", "構造決定", "幾何異性体"], "問2": ["有機化合物", "脂肪族化合物", "元素分析", "組成式", "構造決定", "アルコール", "計算問題"], "問3": ["物質の構成", "分子の極性", "無極性分子", "幾何異性体", "分子の対称性"], "問4": ["高分子化合物", "合成高分子", "イオン交換樹脂", "中和滴定", "計算問題"] }, aggregate_tags: ["有機化合物", "脂肪族化合物", "高分子化合物", "構造決定", "計算問題"] },
+          tips: { topic: "アルケンの反応・元素分析・分子の極性とイオン交換樹脂", stumbling_points: ["オゾン分解によるカルボニル化合物の生成パターンの知識不足", "元素分析でCO2とH2OからC,Hの質量を出した後O質量を出し忘れる", "陽イオン交換樹脂で2価イオンがH⁺2個と交換される量論関係の見落とし"], key_to_start: "オゾン分解の構造決定は生成物のC=Oを向かい合わせてOを除きC=Cを復元するパズル。イオン交換は電荷の収支式を立てる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["高分子化合物", "天然高分子", "糖類", "デンプン", "アミロペクチン", "グリコシド結合", "メチル化", "加水分解", "計算問題"], "問2": ["高分子化合物", "合成高分子", "ゴム", "付加重合", "共重合", "質量パーセント", "計算問題"] }, aggregate_tags: ["高分子化合物", "天然高分子", "合成高分子", "糖類", "計算問題"] },
+          tips: { topic: "糖類（アミロペクチン）の構造解析と合成ゴムの共重合", stumbling_points: ["アミロペクチンのメチル化・加水分解で生成する3種の単糖の構造の意味が結びつかない", "共重合のモル比から質量含有率を求める計算ミス"], key_to_start: "枝分かれ部分のグルコースは1位・4位・6位の3箇所で結合している特徴を図に描いて理解する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第4回 =====================
+    {
+      id: "round4", title: "第4回",
+      questions: [
+        { id: "r4q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族化合物", "物理的性質", "沸点", "水素結合", "溶解度", "極性", "密度", "計算問題"], "問2": ["気体の法則", "混合気体", "蒸気圧", "気液平衡", "分圧", "状態変化", "グラフ読み取り", "計算問題"], "問3": ["反応速度と化学平衡", "反応速度", "素反応", "複合反応", "律速段階", "反応速度式", "反応次数", "グラフ読み取り"] }, aggregate_tags: ["物質の状態と平衡", "有機化合物", "反応速度", "計算問題", "グラフ読み取り"] },
+          tips: { topic: "有機化合物の物性・気液平衡・反応速度式", stumbling_points: ["混合気体の冷却で飽和蒸気圧に達する温度の求め方で定圧と定容の違いを混同", "多段階反応で全体の反応式から安易に速度式を決定してしまう"], key_to_start: "気体の状態変化は全圧一定か体積一定かを読み取り蒸気圧曲線との交点を確認。複合反応の速度式は律速段階の素反応から次数を決定する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["酸化還元反応", "滴定", "ヨウ素滴定", "酸化数", "ビタミンC", "指示薬", "計算問題"], "問2": ["反応速度と化学平衡", "電離平衡", "弱酸", "電離度", "電離定数", "pH", "希釈", "計算問題"] }, aggregate_tags: ["酸化還元反応", "反応速度と化学平衡", "電離平衡", "計算問題"] },
+          tips: { topic: "酸化還元滴定（ヨウ素滴定）と弱酸の電離平衡", stumbling_points: ["ヨウ素逆滴定でビタミンCとチオ硫酸ナトリウムの量論関係の立式ミス", "弱酸の希釈でKa一定だが電離度が濃度の平方根に反比例する関係式の導出忘れ"], key_to_start: "ヨウ素滴定は加えたI2全mol＝(VitCと反応分)+(Na2S2O3と反応分)。弱酸の電離度はα=√(Ka/c)で確認。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "気体の発生", "気体の性質", "酸化還元反応", "酸化数", "ハロゲン"], "問2": ["無機物質", "典型金属", "カルシウム", "炭素", "工業的製法", "アセチレン", "物質量と化学反応式", "計算問題"] }, aggregate_tags: ["無機物質", "気体の製法と性質", "典型金属", "工業的製法", "計算問題"] },
+          tips: { topic: "気体の発生反応とカルシウム化合物の工業的製法", stumbling_points: ["気体発生反応と酸化還元反応の区別がつかない", "多段階反応経路で中間生成物を消去して全体の量論関係をまとめる作業の省略"], key_to_start: "気体発生反応は前後の酸化数をチェック。多段階の工業的製法は足し合わせて１本の式にしmol比を把握する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族化合物", "アルケン", "付加重合", "酸化反応", "銀鏡反応", "ヨードホルム反応", "正誤判定"], "問2": ["有機化合物", "芳香族化合物", "クメン", "物理的性質", "異性体", "立体構造"], "問3": ["有機化合物", "芳香族化合物", "サリチル酸誘導体", "性質と反応", "呈色反応"], "問4": ["有機化合物", "芳香族化合物", "エステル化", "収率", "計算問題"], "問5": ["有機化合物", "生活と化学", "医薬品"] }, aggregate_tags: ["有機化合物", "脂肪族化合物", "芳香族化合物", "生活と化学", "計算問題"] },
+          tips: { topic: "芳香族化合物の合成（クメン法）とサリチル酸誘導体", stumbling_points: ["サリチル酸誘導体の-COOHと-OHの呈色反応との対応の混同", "クメンの異性体数え上げで側鎖の置換を見落とす", "収率計算で理論上の生成量を分母にし忘れる"], key_to_start: "サリチル酸誘導体は構造式を描き-COOHとフェノール性-OHのどちらがエステル化されたか視覚的に確認する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["高分子化合物", "天然高分子", "核酸", "ヌクレオチド", "糖類", "縮合", "計算問題"], "問2": ["高分子化合物", "合成高分子", "プラスチック", "燃焼試験", "バイルシュタイン試験", "質量パーセント", "計算問題"] }, aggregate_tags: ["高分子化合物", "分離と精製", "天然高分子", "合成高分子", "計算問題"] },
+          tips: { topic: "核酸（ヌクレオチド）の構造と合成高分子の識別", stumbling_points: ["DNAとRNAの五炭糖の構造の違い(2位のOH基)の認識不足", "ヌクレオチドの分子量計算で縮合のH2O 2個分を引き忘れる", "バイルシュタイン試験と燃焼時のすすをプラスチック種類と結び付けられない"], key_to_start: "縮合高分子の分子量は「各パーツの和−(結合箇所数×18)」。プラスチックは組成式からCの割合でススの出やすさを判断する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第5回 =====================
+    {
+      id: "round5", title: "第5回",
+      questions: [
+        { id: "r5q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "分子の形", "VSEPR則", "化学結合", "多原子イオン"], "問2": ["気体の法則", "ボイルの法則", "シャルルの法則", "状態変化のグラフ"], "問3": ["溶液の性質", "浸透圧", "ファントホッフの法則", "高分子化合物の分子量", "実験考察", "計算問題"] }, aggregate_tags: ["物質の構成", "物質の状態と平衡", "気体の法則", "溶液の性質", "実験考察", "計算問題", "グラフ読み取り"] },
+          tips: { topic: "分子の形・気体の法則・浸透圧の基本と計算", stumbling_points: ["PVグラフで等温変化と定圧・定容変化の区別ができない", "浸透圧のU字管で液面差による体積増加分を考慮し忘れる"], key_to_start: "気体の状態変化はどの変数が一定かを確認。浸透圧はファントホッフの式にて溶媒移動後の最終体積を用いる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["電池と電気分解", "電気分解の基本法則", "電極反応", "正誤判定"], "問2": ["熱化学", "反応熱の計算", "生成熱", "ヘスの法則", "計算問題"], "問3": ["反応速度と化学平衡", "反応速度", "反応速度式", "1次反応", "平均の速さ", "グラフ読み取り"], "問4": ["反応速度と化学平衡", "電離平衡", "弱酸のpH", "多段階電離", "溶解平衡", "溶解度積", "沈殿の生成条件", "計算問題"] }, aggregate_tags: ["電池と電気分解", "熱化学", "反応速度と化学平衡", "電離平衡", "溶解平衡", "計算問題", "グラフ読み取り"] },
+          tips: { topic: "電気分解・熱化学・反応速度と化学平衡（溶解度積）", stumbling_points: ["生成熱→反応熱の公式の符号間違い", "多段階電離からの硫化物イオン濃度の導出や沈殿判定条件の適用ミス"], key_to_start: "反応速度はデータから平均の速さvと濃度[A]の比を取り次数を特定。溶解度積はイオン濃度を正確に立式してからKspと比較する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "金属イオンの分離", "系統分析", "錯イオン", "沈殿反応", "両性金属"], "問2": ["無機物質", "海水の成分", "電荷の釣り合い", "アルカリ土類金属", "金属イオンの定性分析", "計算問題"] }, aggregate_tags: ["無機物質", "金属イオンの分離", "沈殿反応", "無機化合物の性質", "計算問題"] },
+          tips: { topic: "金属イオンの系統分析と無機化合物の性質", stumbling_points: ["過剰NH3で溶けるイオンと過剰NaOHで溶ける両性金属の混同", "水溶液中の電荷の総和＝0の原則を利用した未知イオンの価数決定に気づかない"], key_to_start: "系統分析は試薬とその液性による沈殿生成ルールを暗記しフローチャートをたどる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族化合物", "アルコールの酸化", "アルデヒド", "実験考察", "正誤判定"], "問2": ["有機化合物", "脂肪族化合物", "アルコール", "異性体", "不斉炭素原子", "ヨードホルム反応"], "問3": ["有機化合物", "芳香族化合物", "サリチル酸誘導体", "性質と反応", "呈色反応"], "問4": ["有機化合物", "脂肪族化合物", "アルケン", "オゾン分解", "ケトン", "構造決定"], "問5": ["高分子化合物", "合成高分子", "合成ゴム", "共重合", "付加反応", "計算問題"] }, aggregate_tags: ["有機化合物", "脂肪族化合物", "芳香族化合物", "高分子化合物", "構造決定", "計算問題"] },
+          tips: { topic: "有機化合物の構造決定と性質・合成高分子（ゴム）", stumbling_points: ["ヨードホルム反応を示す構造の抽出や不斉炭素原子の数え落とし", "サリチル酸誘導体の官能基と試薬の対応づけの混乱"], key_to_start: "異性体は炭素骨格を全て書き出し官能基の位置を移動させて確認。共重合体はモル比を文字で置いて量論式を立てる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["高分子化合物", "天然高分子", "糖類", "デンプン", "アミロース", "アミロペクチン", "正誤判定"], "問2": ["高分子化合物", "合成高分子", "重合の種類", "開環重合", "ポリアミド"], "問3": ["高分子化合物", "合成高分子", "脂肪族ポリエステル", "生分解性高分子", "共重合", "計算問題"], "問4": ["高分子化合物", "合成高分子", "立体網目状構造", "架橋", "多官能性モノマー"], "問5": ["生活と化学", "光化学反応", "光触媒", "正誤判定"] }, aggregate_tags: ["高分子化合物", "天然高分子", "合成高分子", "生活と化学", "計算問題"] },
+          tips: { topic: "糖類と合成高分子（生分解性高分子）の性質と重合", stumbling_points: ["アミロースとアミロペクチンの構造的特徴の逆転記憶", "開環重合・付加重合・縮合重合の区別がつかない", "共重合体の完全分解時のCO2のmol計算で各モノマーの炭素数合計を間違える"], key_to_start: "高分子の構造や重合反応はモノマーの構造式を書き出し結合形成箇所を視覚化する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    }
+  ]
+};
+
+
+// === meta.js ===
+// =============================================================================
+// 駿台 2024年 共通テスト実践問題集 化学基礎 — メタデータ
+// =============================================================================
+// 各回2問×5回 = 10問
+
+var BOOK_DATA_sundai_2024_chemkiso = {
+  id: "sundai_2024_chemkiso",
+  publisher: "駿台",
+  year: 2024,
+  subject: "化学基礎",
+  title: "2024年 駿台実戦問題集 化学基礎",
+  basePath: "data/sundai_2024_chemkiso/",
+  rounds: [
+    // ===================== 第1回 =====================
+    {
+      id: "round1", title: "第1回",
+      questions: [
+        { id: "r1q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["原子の構造", "質量数と中性子"], "問2": ["イオン結合", "組成式"], "問3": ["電気陰性度", "分子の極性", "分子の形"], "問4": ["イオン結晶", "結晶の性質"], "問5": ["無機物質", "金属と化合物の性質", "炎色反応"], "問6": ["物質量計算", "アボガドロ定数", "原子の総数"], "問7": ["化学反応式", "量的関係", "質量計算"], "問8": ["酸化数", "多原子イオン"], "問9": ["酸化還元反応", "量的関係", "グラフ読み取り"] }, aggregate_tags: ["物質の構成", "物質量と化学反応式", "酸化還元反応", "小問集合"] },
+          tips: { topic: "物質の構成・変化および物質量・酸化還元に関する基礎知識と計算", stumbling_points: ["極性結合を持つ分子でも対称な構造なら無極性分子になる点を見落としやすい。", "物質量から原子の総数を求める際に構成原子数を掛け忘れる。", "酸化還元のグラフで滴下量に応じた過不足の量論計算につまずく。"], key_to_start: "組成式や化学反応式を正しく書き出し、与えられた数値をすべて物質量(mol)に変換して比較する習慣をつける。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["実験考察", "実験器具", "メスフラスコ", "溶液の調製"], "問2": ["濃度変換", "質量パーセント濃度", "モル濃度", "文字式計算"], "問3": ["中和滴定", "指示薬", "滴定計算"], "問4": ["気体反応", "中和反応", "グラフ読み取り", "量的関係"] }, aggregate_tags: ["酸と塩基", "中和滴定", "実験考察", "計算問題"] },
+          tips: { topic: "酸と塩基の中和滴定、実験器具の扱い、気体同士の中和反応", stumbling_points: ["質量パーセント濃度・密度を用いた濃度変換で単位の取り扱いを誤る。", "ガラス器具の純水洗浄・共洗い・加熱乾燥の可否を正しく区別できない。", "気体同士の反応のピストン内体積変化グラフで中和完了後の過剰気体による体積増加をイメージしづらい。"], key_to_start: "実験器具の正しい使用目的と洗浄方法を整理して暗記。計算は「H⁺のmol＝OH⁻のmol」に単位を添えて次元を確認する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第2回 =====================
+    {
+      id: "round2", title: "第2回",
+      questions: [
+        { id: "r2q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["無機物質", "物質の判別", "結晶の分類"], "問2": ["酸化還元反応", "酸化数"], "問3": ["酸化数", "酸化剤・還元剤"], "問4": ["電池", "実用電池"], "問5": ["中和滴定", "実験器具", "指示薬", "滴定曲線"], "問6": ["酸と塩基", "塩の分類", "塩の水溶液の性質"] }, aggregate_tags: ["無機物質", "酸化還元反応", "電池", "酸と塩基", "中和滴定", "小問集合"] },
+          tips: { topic: "無機物質の性質、酸化還元反応・電池の基礎、中和滴定と塩の性質", stumbling_points: ["正塩＝中性という誤った思い込みで弱酸・弱塩基由来の塩の加水分解を見落とす。", "純水で使える器具と共洗い必要な器具の区別が曖昧。", "酸化還元反応の判別で全原子の酸化数計算に時間がかかる。"], key_to_start: "酸化還元の判別は「単体(酸化数0)が含まれるか」でアタリをつける。器具の洗浄は「濃度が変わると困るもの＝共洗い」と理屈で理解する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["実験考察", "質量保存の法則", "化学反応式", "質量計算"], "問2": ["物質量計算", "気体の体積", "モル濃度", "グラフ読み取り"], "問3": ["酸化還元反応", "金属の反応性", "イオン化傾向"] }, aggregate_tags: ["物質量と化学反応式", "イオン化傾向", "計算問題", "実験考察"] },
+          tips: { topic: "化学反応の量的関係計算と金属のイオン化傾向", stumbling_points: ["気体の体積(mL)や水溶液の体積(mL)のL変換(×10⁻³)を忘れる。", "化学反応式を正確に立てず係数比の考慮を忘れて計算を進める。", "希酸と酸化力のある酸の違いを整理できていない。"], key_to_start: "計算は必ず最初に化学反応式を書き出す。数値をすべてmolに変換し係数比で比例計算するのが鉄則。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第3回 =====================
+    {
+      id: "round3", title: "第3回",
+      questions: [
+        { id: "r3q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["物質の状態変化", "化学変化と物理変化"], "問2": ["原子の構造", "同位体", "質量数"], "問3": ["多原子イオン", "電子式", "共有電子対"], "問4": ["アルカリ金属の性質", "炎色反応", "酸と塩基の指示薬"], "問5": ["質量パーセント濃度", "密度の計算", "溶液の調製"], "問6": ["物質量計算", "完全燃焼", "組成式・分子式"], "問7": ["イオン化傾向", "金属と酸の反応", "不動態"], "問8": ["酸の価数"], "問9": ["酸化還元反応", "酸化剤", "酸化数の計算"] }, aggregate_tags: ["物質の構成", "物質量と化学反応式", "酸化還元反応", "小問集合"] },
+          tips: { topic: "化学基礎の全範囲にわたる基礎知識と標準的な計算問題", stumbling_points: ["密度の異なる液体の混合で質量は保存されるが体積の和は単純な足し算にならない点を見落とす。", "多原子イオンの電子数で価数分の電子の足し引きを間違える。", "濃硝酸等に対する不動態形成の知識が抜け落ちている。"], key_to_start: "濃度計算は溶質の質量・溶液の質量・体積を明確に区別し密度で単位変換する図表を書いて整理する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["アミド結合", "電子式", "非共有電子対", "中和反応"], "問2": ["モル濃度の計算", "溶液の希釈", "濃度の変換", "気体の性質", "逆滴定", "量的関係", "質量パーセント"] }, aggregate_tags: ["酸と塩基", "中和滴定", "逆滴定", "物質量計算"] },
+          tips: { topic: "タンパク質の窒素定量（ケルダール法）を題材とした逆滴定と濃度変換", stumbling_points: ["質量パーセント濃度・密度からモル濃度を求める際に単位の次元が合わなくなる。", "逆滴定の量的関係で「酸のH⁺総量＝塩基が受け取ったH⁺の総量」の立式がスムーズにできない。", "求めるべきが窒素原子の質量なのにアンモニアの分子量を掛けてしまう。"], key_to_start: "逆滴定は「誰が酸で誰が塩基か」を分類し、「酸の価数×mol＝塩基の価数×molの総和」を必ず書き出してから代入する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第4回 =====================
+    {
+      id: "round4", title: "第4回",
+      questions: [
+        { id: "r4q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["物質の利用", "単体と化合物", "無機物質", "高分子化合物"], "問2": ["純物質と混合物", "状態変化", "沸点"], "問3": ["分子の構造", "電子式", "非共有電子対", "分子の極性"], "問4": ["物質量の概念", "相対質量", "原子量", "モル"], "問5": ["アボガドロ定数", "物質量計算", "密度と体積", "文字式"], "問6": ["ブレンステッド・ローリーの定義", "酸と塩基"], "問7": ["中和滴定", "イオンの物質量", "グラフ読み取り", "塩の溶解性"], "問8": ["化学反応式", "量的関係", "気体の体積計算"] }, aggregate_tags: ["物質の構成", "物質量と化学反応式", "酸と塩基", "小問集合"] },
+          tips: { topic: "純物質と混合物、分子の極性、物質量の概念、中和反応のイオン量変化", stumbling_points: ["極性結合を持つ分子と極性分子を混同しCO2やCH4を極性分子と誤認する。", "相対質量・原子量・物質量の概念の違いを明確に説明できない。", "中和滴定グラフで見物人イオンの物質量が一定に保たれることを忘れる。"], key_to_start: "中和滴定グラフは反応式からどのイオンが消費/加入/残存するかを整理してから選択肢を選ぶ。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["電池と電気分解", "電気めっき", "イオン化傾向", "金属の密度と原子量", "グラフ読み取り"], "問2": ["ダニエル電池", "酸化還元反応", "電極での反応", "ファラデーの法則", "析出量の計算"] }, aggregate_tags: ["酸化還元反応", "電池", "電気分解", "実験考察", "計算問題"] },
+          tips: { topic: "イオン化傾向と電気めっき、ダニエル電池を電源とした電気分解の量的関係", stumbling_points: ["めっきの厚み比較でモル質量と密度からモル体積を導出しグラフの傾き(M/d)として読み取る見方が初見で難しい。", "電池の負極/正極と電気分解の陰極/陽極の接続関係を混乱する。", "析出質量からe⁻のmolを求める際に半反応式の係数(Cuは2価)を掛け忘れ/割り忘れる。"], key_to_start: "電池・電気分解は各電極の半反応式(e⁻を含む式)を書き出し、流れたe⁻のmolをハブにして比例計算する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第5回 =====================
+    {
+      id: "round5", title: "第5回",
+      questions: [
+        { id: "r5q1", name: "第1問", score: 30, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["物質量計算", "組成式の決定", "還元反応", "質量パーセント"], "問2": ["無機物質", "アルミニウム", "金属結晶", "イオン結晶"], "問3": ["物質の判別", "炎色反応", "気体の発生反応", "無機物質"], "問4": ["酸化還元反応", "酸化数", "電池", "負極と正極"], "問5": ["濃度の変換", "モル濃度の計算", "溶液の希釈"], "問6": ["周期表", "元素の性質", "価電子", "電気陰性度"], "問7": ["分子の形", "分子の極性", "非共有電子対", "配位結合"], "問8": ["周期律", "イオン化エネルギー", "グラフ読み取り"] }, aggregate_tags: ["物質の構成", "物質量と化学反応式", "無機物質", "酸化還元反応", "小問集合"] },
+          tips: { topic: "物質の構成・周期律から物質量計算、酸化還元反応や電池までの幅広い基礎知識", stumbling_points: ["鉄の酸化物の還元計算で質量減少分が酸素の質量であることに気づけない。", "イオン化エネルギーのグラフで希ガス→アルカリ金属の急激な低下のイメージが定着していない。", "濃硫酸の希釈計算で公式の丸暗記に頼り単位の次元変換を間違える。"], key_to_start: "計算は与えられた数値の単位に注目し全てmolをハブとして立式。知識問題は「なぜそうなるか」の理由をセットで理解する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q2", name: "第2問", score: 20, timeMinutes: 15,
+          tags: { sub_questions: { "問1": ["酸と塩基の反応", "酸化還元反応の判別"], "問2": ["ブレンステッド・ローリーの定義", "酸と塩基"], "問3": ["滴定曲線", "pH", "水素イオン濃度", "電離度の計算"], "問4": ["塩の分類", "酸性塩", "塩の加水分解", "水溶液の液性"], "問5": ["中和滴定", "滴定曲線の読み取り", "中和の量的関係"] }, aggregate_tags: ["酸と塩基", "中和滴定", "塩の性質", "グラフ読み取り"] },
+          tips: { topic: "酸と塩基の定義、塩の液性判定、滴定曲線の読み取りと量的関係", stumbling_points: ["ブレンステッド・ローリーの定義で逆反応でH⁺を与えるイオンを見失う。", "酸性塩＝酸性と短絡的に覚えNaHCO3が塩基性を示す理由を理解できていない。", "滴定曲線のスタートpHから元の弱酸の[H⁺]を導き電離度を逆算するステップが思い浮かばない。"], key_to_start: "滴定曲線は①滴定前のpHから酸の強弱・電離度を把握、②pHジャンプの中点から中和に要した滴下量を読み取る2ステップを確実に踏む。" },
+          problemImages: [], answerImages: [] }
+      ]
+    }
+  ]
+};
+
+
+// === meta.js ===
+// =============================================================================
+// 共通テスト過去問 化学 — メタデータ
+// =============================================================================
+// 2024年度: 本試験5問 + 追試験5問 = 10問
+// 2025年度: 本試験5問 + 追試験5問 = 10問
+// 合計: 20問
+
+var BOOK_DATA_kakomon_chem_2024 = {
+  id: "kakomon_chem_2024",
+  publisher: "過去問",
+  year: 2024,
+  subject: "化学",
+  title: "2024年度 共通テスト過去問 化学",
+  basePath: "data/kakomon_chem/",
+  rounds: [
+    {
+      id: "honshiken", title: "本試験",
+      questions: [
+        { id: "h_q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "配位結合"], "問2": ["物質の状態と平衡", "気体の状態方程式", "密度", "計算問題"], "問3": ["コロイド", "透析", "溶液"], "問4": ["物質の状態", "状態図", "密度の温度変化", "熱化学", "融解熱", "グラフ読み取り"] }, aggregate_tags: ["物質の構成", "物質の状態", "気体の法則", "コロイド", "熱化学"] },
+          tips: { topic: "物質の構成・状態とグラフの読み取り", stumbling_points: ["気体の密度計算でPV=nRTとモル質量の関係式を変形できない", "水の状態図から三重点や4℃で密度最大などの特異的性質を読み取れない"], key_to_start: "グラフ問題は縦軸・横軸の単位を確認し、物質の状態を特定してから立式する。" },
+          problemImages: [], answerImages: [] },
+        { id: "h_q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "エネルギー図", "溶解熱"], "問2": ["反応速度と化学平衡", "ルシャトリエの原理", "平衡移動"], "問3": ["電池と電気分解", "実用電池", "量的関係", "ファラデーの法則"], "問4": ["酸と塩基", "電離平衡", "弱酸の電離定数", "グラフ読み取り", "中和反応"] }, aggregate_tags: ["熱化学", "化学平衡", "電池", "酸と塩基", "実験考察"] },
+          tips: { topic: "反応エネルギー、化学平衡、電池および電離平衡", stumbling_points: ["電池の計算で半反応式からe⁻のmolと消費された反応物の総質量を対応させられない", "弱酸の滴定グラフで電離定数Kaの定義式に正しく代入できない"], key_to_start: "電池は全体の反応式で酸化数が変化した原子に着目し、反応物mol対e⁻molの比率を明確にする。" },
+          problemImages: [], answerImages: [] },
+        { id: "h_q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "試薬の保存", "気体の発生と性質"], "問2": ["無機物質", "ハロゲン", "酸化還元反応"], "問3": ["無機物質", "遷移金属", "典型金属", "合金"], "問4": ["無機物質", "酸化還元反応", "酸化数", "量的関係", "電池と電気分解", "計算問題"] }, aggregate_tags: ["無機物質", "非金属元素", "金属元素", "酸化還元反応", "電気分解"] },
+          tips: { topic: "無機物質の性質と酸化還元反応・電気分解の計算", stumbling_points: ["ハロゲン単体の酸化力の順序を忘れて反応の進行可否を間違える", "並行する電気分解で両極のe⁻のmolが等しいことを使った等式を立てられない"], key_to_start: "電気分解は各極の半反応式を書き出し、生成物のmolからe⁻のmolを算出して両極でイコールにする。" },
+          problemImages: [], answerImages: [] },
+        { id: "h_q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族", "アルケンの反応", "酸化反応"], "問2": ["高分子化合物", "天然高分子", "合成高分子", "繊維とゴム"], "問3": ["高分子化合物", "アミノ酸とタンパク質", "呈色反応", "ペプチド"], "問4": ["有機化合物", "芳香族", "医薬品", "合成経路", "官能基の性質"] }, aggregate_tags: ["有機化合物", "脂肪族", "芳香族", "高分子化合物", "医薬品", "構造決定"] },
+          tips: { topic: "有機・高分子化合物の構造、反応、および合成経路", stumbling_points: ["ペプチドの呈色反応と検出対象の対応が曖昧", "芳香族の多段階合成で各試薬がどの官能基をどう変化させるか整理できていない"], key_to_start: "芳香族合成経路は出発物質から最終生成物まで構造式を全て書き出し各段階の反応種類を図解する。" },
+          problemImages: [], answerImages: [] },
+        { id: "h_q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "質量分析法", "グラフ読み取り", "比例計算"], "問2": ["物質の構成", "同位体", "物質量の計算", "実験考察"], "問3": ["物質の構成", "質量スペクトル", "有機化合物", "分子の切断", "グラフ読み取り"] }, aggregate_tags: ["総合問題", "実験考察", "物質の構成", "同位体", "計算問題"] },
+          tips: { topic: "質量分析法を用いた実験データの考察と計算", stumbling_points: ["見慣れないテーマの長文でグラフの軸の意味を読み違える", "同位体が混ざったサンプルの割合計算で足し合わせを混乱する"], key_to_start: "見慣れない実験考察は問題文中の具体例をトレースしてグラフの横軸(質量)と縦軸(量)の関係を理解する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    {
+      id: "tsuishiken", title: "追試験",
+      questions: [
+        { id: "t_q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "塩の加水分解", "共有結合"], "問2": ["物質の状態", "分子間力", "沸点", "水素結合"], "問3": ["物質の状態", "ボイル・シャルルの法則", "計算問題"], "問4": ["溶液", "溶解度", "抽出", "質量パーセント濃度", "計算問題"] }, aggregate_tags: ["物質の構成", "物質の状態", "溶液", "気体の法則", "分子間力"] },
+          tips: { topic: "物質の構成・状態と気体・溶液の性質", stumbling_points: ["分子量や極性の沸点への影響を整理できず水素結合の有無を見落とす", "混合溶液の分離で溶解度を超えた分だけが分離することを理解せず全体量で計算"], key_to_start: "気体はボイル・シャルルの法則を立式し、溶液の分離は溶媒100gあたりの溶解度で各層の質量を整理する。" },
+          problemImages: [], answerImages: [] },
+        { id: "t_q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["反応速度と化学平衡", "反応速度式"], "問2": ["反応速度と化学平衡", "可逆反応", "量的関係"], "問3": ["物質の状態と平衡", "溶解度積", "沈殿反応", "計算問題"], "問4": ["電池と電気分解", "銅の電解精錬", "溶融塩電解", "ファラデーの法則", "量的関係", "計算問題"] }, aggregate_tags: ["反応速度と化学平衡", "溶解度積", "電池と電気分解", "計算問題"] },
+          tips: { topic: "反応速度・化学平衡と溶解度積・電気分解の計算", stumbling_points: ["溶解度積の計算で沈殿生成後のイオン濃度を混合前のまま使ってしまう", "電解精錬で陽極泥の成分と溶解する成分を区別できない"], key_to_start: "溶解度積は沈殿せず残っているイオンの濃度積がKspに等しい関係式を立てる。" },
+          problemImages: [], answerImages: [] },
+        { id: "t_q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "14族元素", "両性金属"], "問2": ["無機物質", "金属イオンの分離", "沈殿反応", "錯イオン"], "問3": ["無機物質", "遷移金属", "酸と塩基", "逆滴定", "量的関係", "計算問題"] }, aggregate_tags: ["無機物質", "典型金属", "遷移金属", "金属イオンの分離", "酸と塩基", "計算問題"] },
+          tips: { topic: "無機物質の性質・分離と逆滴定による錯イオンの組成決定", stumbling_points: ["過剰のNH3で錯イオンを形成して再溶解する金属を暗記できていない", "逆滴定で吸収させた酸の総量と残った酸の量の関係を図示できない"], key_to_start: "逆滴定は「最初の酸のH⁺mol＝吸収NH3のmol＋滴定でのOH⁻mol」を線分で整理する。" },
+          problemImages: [], answerImages: [] },
+        { id: "t_q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "芳香族", "置換反応"], "問2": ["高分子化合物", "合成高分子", "結晶性と非結晶性"], "問3": ["有機化合物", "エステル", "抽出", "構造異性体", "不斉炭素原子"], "問4": ["有機化合物", "セッケンと合成洗剤", "界面活性剤", "単分子膜", "計算問題"] }, aggregate_tags: ["有機化合物", "芳香族", "抽出", "高分子化合物", "計算問題"] },
+          tips: { topic: "芳香族化合物の分離と高分子・界面活性剤の性質", stumbling_points: ["エステル加水分解後の分液で塩となって水層に移る化合物を判断できない", "単分子膜の計算で体積・質量から分子個数への換算で桁や単位を間違える"], key_to_start: "有機化合物の抽出は酸の強弱(カルボン酸>炭酸>フェノール)のルールで塩基による塩生成を判断する。" },
+          problemImages: [], answerImages: [] },
+        { id: "t_q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["高分子化合物", "合成繊維", "重合反応"], "問2": ["高分子化合物", "アミノ酸", "タンパク質", "電気泳動", "ペプチド結合"], "問3": ["高分子化合物", "合成高分子", "水素結合", "グラフ読み取り"] }, aggregate_tags: ["高分子化合物", "アミノ酸", "合成高分子", "実験考察", "グラフ読み取り"] },
+          tips: { topic: "アミノ酸の性質とナイロン（合成繊維）の構造・物性", stumbling_points: ["電気泳動で等電点とpHの大小関係から陽イオン/陰イオンを判定できない", "ナイロンの繰り返し単位と融点のグラフで初見の計算式の意味を読み解けない"], key_to_start: "電気泳動は「pHが等電点より酸性側なら陽イオン(陰極へ)、塩基性側なら陰イオン(陽極へ)」のルールを適用。" },
+          problemImages: [], answerImages: [] }
+      ]
+    }
+  ]
+};
+
+var BOOK_DATA_kakomon_chem_2025 = {
+  id: "kakomon_chem_2025",
+  publisher: "過去問",
+  year: 2025,
+  subject: "化学",
+  title: "2025年度 共通テスト過去問 化学",
+  basePath: "data/kakomon_chem/",
+  rounds: [
+    {
+      id: "honshiken", title: "本試験",
+      questions: [
+        { id: "h_q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "イオン結晶"], "問2": ["物質の状態と平衡", "理想気体と実在気体", "分圧", "気体の状態方程式"], "問3": ["溶液", "気体の溶解度", "ヘンリーの法則"], "問4": ["コロイド", "溶液"], "問5": ["溶液", "沸点上昇", "浸透圧", "ファントホッフの法則", "計算問題"] }, aggregate_tags: ["物質の状態", "溶液", "コロイド", "気体の法則"] },
+          tips: { topic: "気体の法則と溶液の束一的性質", stumbling_points: ["実在気体が理想気体に近づく条件の誤認", "浸透圧計算で電解質の電離を考慮せずモル濃度をそのまま使う"], key_to_start: "浸透圧Π=cRTでは溶質の電離度を確認し全溶質粒子のモル濃度に変換して代入する。" },
+          problemImages: [], answerImages: [] },
+        { id: "h_q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["化学と人間生活", "化学発光"], "問2": ["電池と電気分解", "ニッケル・カドミウム電池", "計算問題"], "問3": ["酸と塩基", "弱酸の電離定数", "pH", "グラフ読み取り"], "問4": ["反応速度と化学平衡", "アンモニア合成", "圧平衡定数と濃度平衡定数", "ルシャトリエの原理", "グラフ読み取り"] }, aggregate_tags: ["電池", "化学平衡", "電離平衡", "実験考察"] },
+          tips: { topic: "電池の量的関係と化学平衡の移動・グラフ考察", stumbling_points: ["電極質量変化からe⁻のmolに換算できない", "KcとKpの変換式を暗記頼みで間違える", "温度変化による平衡状態と反応速度をグラフで混同"], key_to_start: "電池は半反応式を書きe⁻のmol基準で追う。KcとKpの変換はP=(n/V)RT=[C]RTを代入してその場で導出する。" },
+          problemImages: [], answerImages: [] },
+        { id: "h_q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "遷移元素", "錯イオン", "沈殿反応"], "問2": ["無機物質", "非金属元素", "ケイ素の化合物"], "問3": ["無機物質", "気体の発生", "気体の性質"], "問4": ["酸化還元反応", "ハロゲン", "ヨウ素の製法", "量的関係"] }, aggregate_tags: ["無機物質", "遷移金属", "非金属元素", "酸化還元反応"] },
+          tips: { topic: "無機化合物の性質と酸化還元反応の量的関係", stumbling_points: ["沈殿の色や気体の捕集法の知識の欠落", "未完成の酸化還元反応式の量的計算を全反応式なしで進められない"], key_to_start: "酸化還元反応の量的計算は「酸化剤のe⁻mol＝還元剤のe⁻mol」の等式を直接立ててショートカットする。" },
+          problemImages: [], answerImages: [] },
+        { id: "h_q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "酸素を含む有機化合物", "官能基の性質"], "問2": ["有機化合物", "構造決定", "付加反応"], "問3": ["高分子化合物", "天然高分子", "アミノ酸", "糖類"], "問4": ["有機化合物", "高分子化合物", "アセチレンの反応", "合成高分子", "計算問題"] }, aggregate_tags: ["有機化合物", "脂肪族", "芳香族", "高分子化合物", "構造決定"] },
+          tips: { topic: "有機化合物の反応と高分子化合物の合成・計算", stumbling_points: ["各官能基の酸性の強弱が曖昧で遊離反応の有無を間違える", "PVAのアセタール化などで着目すべき基本単位を見失い計算が泥沼化"], key_to_start: "高分子の反応計算は繰り返し単位2つ分を1セットとして反応前後の式量の差額に着目する。" },
+          problemImages: [], answerImages: [] },
+        { id: "h_q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "原油の分留"], "問2": ["有機化合物", "合成経路", "ナイロン6"], "問3": ["無機物質", "熱化学", "反応エンタルピー", "錯滴定", "実験考察", "計算問題"] }, aggregate_tags: ["総合問題", "熱化学", "実験考察", "有機・無機融合"] },
+          tips: { topic: "化学知識の総合的な活用（分留、合成経路、エンタルピー、キレート滴定）", stumbling_points: ["ヘスの法則で引く順番や係数を間違え符号ミスする", "キレート滴定でモル比を見落とす"], key_to_start: "長文の実験考察は「XとYが何対何のmol比で反応するか」を示す一文を探し出しモルの等式を作る。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    {
+      id: "tsuishiken", title: "追試験",
+      questions: [
+        { id: "t_q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "原子とイオンの大きさ"], "問2": ["物質の構成", "イオン結晶", "単位格子", "配位数"], "問3": ["物質の状態と平衡", "気体の法則", "蒸気圧", "グラフ読み取り"], "問4": ["溶液", "質量モル濃度", "凝固点降下", "冷却曲線", "計算問題"] }, aggregate_tags: ["物質の構成", "物質の状態", "溶液", "気体の法則", "束一的性質"] },
+          tips: { topic: "物質の構成・状態と溶液の性質", stumbling_points: ["モル濃度と質量モル濃度の定義を混同", "蒸気圧グラフで液体が全て蒸発した境界点を見落とす", "凝固点降下の冷却曲線で過冷却の状態を読み取れない"], key_to_start: "蒸気圧や凝固点のグラフは「状態変化が起きている境界点」をまず見つけることから始める。" },
+          problemImages: [], answerImages: [] },
+        { id: "t_q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "典型元素", "アルカリ金属", "ハロゲン"], "問2": ["無機物質", "非金属元素", "酸化数"], "問3": ["物質の状態と平衡", "溶解度積", "沈殿反応", "計算問題"], "問4": ["無機物質", "アルミニウムの製法", "錯イオン", "電池と電気分解", "溶融塩電解", "グラフ読み取り"] }, aggregate_tags: ["無機物質", "典型元素", "溶解度積", "電気分解", "実験考察"] },
+          tips: { topic: "無機化合物の性質と溶解度積・溶融塩電解の計算", stumbling_points: ["沈殿判定で混合後のイオン濃度を計算せず混合前の値で比較してしまう", "溶融塩電解で陽極の気体と流れたe⁻の量論関係を取り違える"], key_to_start: "沈殿が生成するかは混合直後の各イオンのモル濃度を算出しイオン積とKspの大小を比較する。" },
+          problemImages: [], answerImages: [] },
+        { id: "t_q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "付加反応", "立体構造"], "問2": ["有機化合物", "シクロアルカン", "開環反応", "不斉炭素原子"], "問3": ["高分子化合物", "合成高分子", "熱可塑性樹脂", "熱硬化性樹脂"], "問4": ["有機化合物", "エステル", "構造決定", "アルコールの酸化"], "問5": ["有機化合物", "油脂", "脂肪酸", "不飽和度", "グラフ読み取り"] }, aggregate_tags: ["有機化合物", "脂肪族", "高分子化合物", "構造決定", "実験考察"] },
+          tips: { topic: "脂肪族有機化合物の構造・反応と高分子（油脂含む）", stumbling_points: ["見慣れない開環反応で不斉炭素原子の有無を見誤る", "脂肪酸の融点グラフで炭素数と二重結合数の影響を正しく読み取れない"], key_to_start: "未知の反応は構造式を紙に全て書き出し4つの異なる基がついた不斉炭素原子を指差し確認する。" },
+          problemImages: [], answerImages: [] },
+        { id: "t_q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "カルシウムの化合物", "酸と塩基", "溶解度積", "pH計算"], "問2": ["無機物質", "銅の化合物", "熱分解", "量的関係", "計算問題"], "問3": ["有機化合物", "芳香族", "酸化還元反応", "アゾ化合物", "合成経路", "グラフ読み取り"] }, aggregate_tags: ["総合問題", "実験考察", "無機・有機融合", "計算問題", "合成経路"] },
+          tips: { topic: "美術・工芸（顔料や染料）を題材とした無機・有機融合問題", stumbling_points: ["混合物の熱分解計算で反応する成分と反応しない成分を区別できない", "芳香族の多段階合成で置換基の配向性を無視して反応順序を逆にする"], key_to_start: "混合物の量的計算は各成分のmolをx,yと文字で置き連立方程式を立てて機械的に解く。" },
+          problemImages: [], answerImages: [] },
+        { id: "t_q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "反応エンタルピー", "ヘスの法則"], "問2": ["酸と塩基", "炭酸塩の中和滴定", "二段階滴定", "計算問題"], "問3": ["反応速度と化学平衡", "平衡定数", "ルシャトリエの原理", "グラフ読み取り"], "問4": ["無機物質", "イオン交換膜法", "電池と電気分解", "電気量", "計算問題"] }, aggregate_tags: ["総合問題", "反応速度と化学平衡", "酸と塩基", "熱化学", "計算問題"] },
+          tips: { topic: "エンタルピー、二段階滴定、平衡移動および電気分解の総合演習", stumbling_points: ["二段階滴定で各中和点までの滴下量とイオンの反応量の対応が混乱する", "平衡グラフで容器の体積変化が平衡定数に影響しないことを忘れる"], key_to_start: "二段階滴定は反応式を書き出し第1段階(pH8.3)と第2段階(pH4.0)の滴下量がどの物質の量と等しいか図式化する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    }
+  ]
+};
+
+
+// === app.js ===
+// =============================================================================
+// 共通テスト化学データベース - アプリケーション
+// マルチ出版社・年度対応 + 画像手動修正（管理モード）
+// =============================================================================
+
+// --- State ---
+let allBooks = [];
+let flatQuestions = [];
+let currentSearch = '';
+let activeFilters = { publisher: null, year: null, subject: null, round: null, units: new Set() };
+let selectedQuestions = new Set();
+let selectMode = false;
+let adminMode = false;
+let currentViewMode = 'pair';
+let lastFocusedType = 'answer';  // pairモードCtrl+Vペースト時のデフォルトターゲット
+let currentViewData = null;
+
+// --- Cloud Storage (GAS + Drive) + IndexedDB Cache ---
+// ★ GASデプロイ後にURLを設定してください
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyLWRWAbO9IP8-HuZDIZXBZKz0viZuCFk8kLLvch1Hoq7De4fnQNFNt0zTr8PvKLxTXHw/exec';
+
+// --- IndexedDB (ローカルキャッシュ) ---
+const DB_NAME = 'chemdb_overrides';
+const DB_VERSION = 1;
+const STORE_NAME = 'image_overrides';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function cacheGet(key) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch { return null; }
+}
+
+async function cacheSet(key, value) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+  } catch {}
+}
+
+async function cacheDel(key) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.delete(key);
+      tx.oncomplete = () => resolve();
+    });
+  } catch {}
+}
+
+// --- GAS API ---
+async function gasGet(key) {
+  if (!GAS_API_URL) return null;
+  try {
+    const res = await fetch(`${GAS_API_URL}?action=get&key=${encodeURIComponent(key)}`);
+    const json = await res.json();
+    return json.success ? json.data : null;
+  } catch { return null; }
+}
+
+async function gasSave(key, data) {
+  if (!GAS_API_URL) return;
+  try {
+    await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'save', key, data })
+    });
+  } catch (e) { console.warn('GAS save failed:', e); }
+}
+
+async function gasDelete(key) {
+  if (!GAS_API_URL) return;
+  try {
+    await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'delete', key })
+    });
+  } catch (e) { console.warn('GAS delete failed:', e); }
+}
+
+// --- 公開API (既存コードと同じI/F) ---
+async function getOverride(key) {
+  const cached = await cacheGet(key);
+  if (GAS_API_URL) {
+    gasGet(key).then(cloud => {
+      if (cloud !== undefined) {
+        if (cloud) cacheSet(key, cloud);
+        else cacheDel(key);
+      }
+    });
+  }
+  return cached;
+}
+
+async function setOverride(key, value) {
+  await cacheSet(key, value);
+  gasSave(key, value);
+}
+
+async function deleteOverride(key) {
+  await cacheDel(key);
+  gasDelete(key);
+}
+
+// --- Initialize ---
+document.addEventListener('DOMContentLoaded', () => {
+  loadAllBooks();
+  buildFilterUI();
+  renderCards();
+  setupEventListeners();
+});
+
+// --- Load Books from global variables ---
+function loadAllBooks() {
+  allBooks = [];
+  flatQuestions = [];
+
+  BOOK_REGISTRY.forEach(reg => {
+    if (!reg.enabled) return;
+    const varName = `BOOK_DATA_${reg.id}`;
+    const bookData = window[varName];
+    if (!bookData) { console.warn(`Book data not found: ${varName}`); return; }
+    allBooks.push(bookData);
+
+    (bookData.rounds || []).forEach(round => {
+      (round.questions || []).forEach(q => {
+        flatQuestions.push({
+          book: bookData,
+          round,
+          question: q,
+          allTags: getAllTags(q),
+          overrideKeyProblem: `${bookData.id}/${q.id}/problem`,
+          overrideKeyAnswer: `${bookData.id}/${q.id}/answer`
+        });
+      });
+    });
+  });
+}
+
+function getAllTags(q) {
+  const tags = [];
+  (q.tags.aggregate_tags || []).forEach(t => tags.push(t));
+  Object.values(q.tags.sub_questions || {}).forEach(subTags => {
+    subTags.forEach(t => { if (!tags.includes(t)) tags.push(t); });
+  });
+  return tags;
+}
+
+// --- Build Filter UI ---
+function buildFilterUI() {
+  const publishers = [...new Set(allBooks.map(b => b.publisher))];
+  renderChips('publisherFilters', publishers, 'publisher', p => {
+    const theme = PUBLISHER_THEMES[p] || {};
+    return `<span class="chip-icon">${theme.icon || '📕'}</span>${p}`;
+  });
+
+  const years = [...new Set(allBooks.map(b => b.year))].sort((a,b) => b-a);
+  renderChips('yearFilters', years, 'year', y => `${y}年`);
+
+  const subjects = [...new Set(allBooks.map(b => b.subject))];
+  renderChips('subjectFilters', subjects, 'subject');
+
+  const rounds = [...new Set(allBooks.flatMap(b => (b.rounds||[]).map(r => r.title)))].sort();
+  renderChips('roundFilters', rounds, 'round');
+
+  const units = Object.keys(TAG_CATEGORIES);
+  const container = document.getElementById('unitFilters');
+  container.innerHTML = units.map(u => {
+    const info = TAG_CATEGORIES[u];
+    return `<button class="filter-chip" data-filter-type="unit" data-value="${u}">
+      <span class="chip-icon">${info.icon}</span>${u}
+    </button>`;
+  }).join('');
+  container.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.dataset.value;
+      if (activeFilters.units.has(val)) { activeFilters.units.delete(val); btn.classList.remove('active'); }
+      else { activeFilters.units.add(val); btn.classList.add('active'); }
+      renderCards();
+    });
+  });
+}
+
+function renderChips(containerId, values, filterKey, labelFn) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = values.map(v => {
+    const label = labelFn ? labelFn(v) : v;
+    return `<button class="filter-chip" data-filter-type="${filterKey}" data-value="${v}">${label}</button>`;
+  }).join('');
+  container.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.dataset.value;
+      const isNumber = !isNaN(val);
+      const parsed = isNumber ? parseInt(val) : val;
+      if (activeFilters[filterKey] === parsed) {
+        activeFilters[filterKey] = null;
+        btn.classList.remove('active');
+      } else {
+        container.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        activeFilters[filterKey] = parsed;
+        btn.classList.add('active');
+      }
+      renderCards();
+    });
+  });
+}
+
+// --- Event Listeners ---
+function setupEventListeners() {
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', (e) => {
+    currentSearch = e.target.value.trim();
+    document.getElementById('clearSearch').classList.toggle('visible', currentSearch.length > 0);
+    renderCards();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  document.getElementById('viewerModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  document.addEventListener('paste', async (e) => {
+    if (!adminMode || !currentViewData) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        await handleAdminImageAdd(file);
+        break;
+      }
+    }
+  });
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  currentSearch = '';
+  document.getElementById('clearSearch').classList.remove('visible');
+  renderCards();
+}
+
+// --- Filtering ---
+function getFilteredQuestions() {
+  return flatQuestions.filter(({ book, round, question, allTags }) => {
+    if (activeFilters.publisher && book.publisher !== activeFilters.publisher) return false;
+    if (activeFilters.year && book.year !== activeFilters.year) return false;
+    if (activeFilters.subject && book.subject !== activeFilters.subject) return false;
+    if (activeFilters.round && round.title !== activeFilters.round) return false;
+    if (activeFilters.units.size > 0) {
+      const hasMatch = [...activeFilters.units].some(u => allTags.some(t => t.includes(u) || u.includes(t)));
+      if (!hasMatch) return false;
+    }
+    if (currentSearch) {
+      const s = currentSearch.toLowerCase();
+      const searchable = [...allTags, question.name, question.tips?.topic || '', round.title, book.title, book.publisher].join(' ').toLowerCase();
+      if (!searchable.includes(s)) return false;
+    }
+    return true;
+  });
+}
+
+// --- Render Cards ---
+function renderCards() {
+  const grid = document.getElementById('cardsGrid');
+  const noResults = document.getElementById('noResults');
+  const results = getFilteredQuestions();
+
+  document.getElementById('statsText').innerHTML = `<strong>${results.length}</strong> 件の問題`;
+
+  if (results.length === 0) { grid.innerHTML = ''; noResults.style.display = 'block'; return; }
+  noResults.style.display = 'none';
+
+  grid.innerHTML = results.map(({ book, round, question, allTags }) => {
+    const isSelected = selectedQuestions.has(`${book.id}/${question.id}`);
+    const pTheme = PUBLISHER_THEMES[book.publisher] || { color: '#6366f1', bg: 'rgba(99,102,241,0.15)' };
+    const imageCount = (question.problemImages?.length || 0) + (question.answerImages?.length || 0);
+    const matchedTags = allTags.map(tag => {
+      const isHighlight = (currentSearch && tag.toLowerCase().includes(currentSearch.toLowerCase()))
+        || [...activeFilters.units].some(f => tag.includes(f) || f.includes(tag));
+      return `<span class="card-tag ${isHighlight ? 'highlight' : ''}">${tag}</span>`;
+    }).join('');
+
+    return `
+      <div class="question-card ${isSelected ? 'selected' : ''}"
+           onclick="handleCardClick('${book.id}','${question.id}',event)">
+        <div class="card-select-check">${isSelected ? '✓' : ''}</div>
+        <div class="card-header">
+          <span class="card-publisher-badge" style="background:${pTheme.color}">${book.publisher}</span>
+          <span class="card-round-badge">${round.title}</span>
+          <div class="card-title-area">
+            <div class="card-title">${question.name}</div>
+            <div class="card-meta">
+              <span>配点${question.score}点</span>
+              <span>目安${question.timeMinutes}分</span>
+              <span>📄${imageCount}p</span>
+            </div>
+            <div class="card-source">${book.title}</div>
+          </div>
+        </div>
+        <div class="card-tags">${matchedTags}</div>
+        <div class="card-topic">${question.tips?.topic || ''}</div>
+        <div class="card-footer">
+          <span>${allTags[0] || ''}</span>
+          <div class="card-footer-actions">
+            <button class="btn btn-ghost btn-icon" onclick="event.stopPropagation();openViewer('${book.id}','${question.id}')" title="表示">👁️</button>
+            <button class="btn btn-ghost btn-icon" onclick="event.stopPropagation();printSingle('${book.id}','${question.id}')" title="印刷">🖨️</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// --- Card Click ---
+function handleCardClick(bookId, qId, event) {
+  if (selectMode) {
+    const key = `${bookId}/${qId}`;
+    if (selectedQuestions.has(key)) selectedQuestions.delete(key); else selectedQuestions.add(key);
+    updateSelectionUI(); renderCards();
+  } else {
+    openViewer(bookId, qId);
+  }
+}
+
+// --- Select Mode ---
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  document.getElementById('selectModeBtn').textContent = selectMode ? '☑' : '☐';
+  if (!selectMode) clearSelection();
+}
+
+function clearSelection() { selectedQuestions.clear(); updateSelectionUI(); renderCards(); }
+
+function updateSelectionUI() {
+  const bar = document.getElementById('selectionBar');
+  bar.classList.toggle('visible', selectedQuestions.size > 0);
+  document.getElementById('selCount').textContent = `${selectedQuestions.size} 件選択中`;
+}
+
+function toggleAllSelect() {
+  const results = getFilteredQuestions();
+  if (selectedQuestions.size === results.length) { clearSelection(); return; }
+  selectMode = true;
+  document.getElementById('selectModeBtn').textContent = '☑';
+  results.forEach(r => selectedQuestions.add(`${r.book.id}/${r.question.id}`));
+  updateSelectionUI(); renderCards();
+}
+
+// --- Find Question ---
+function findQuestion(bookId, qId) {
+  return flatQuestions.find(f => f.book.id === bookId && f.question.id === qId) || null;
+}
+
+// --- Admin Mode ---
+function toggleAdminMode() {
+  adminMode = !adminMode;
+  document.body.classList.toggle('admin-mode', adminMode);
+  document.getElementById('adminIndicator').classList.toggle('active', adminMode);
+  if (currentViewData) renderViewerContent();
+}
+
+// --- Viewer Modal ---
+async function openViewer(bookId, qId) {
+  const data = findQuestion(bookId, qId);
+  if (!data) return;
+  currentViewData = data;
+  currentViewMode = 'pair';
+
+  const { book, round, question } = data;
+  document.getElementById('modalTitle').innerHTML = `
+    <span class="badge" style="background:${(PUBLISHER_THEMES[book.publisher]||{}).color || '#6366f1'}">${book.publisher}</span>
+    <span class="badge">${round.title}</span>
+    <span>${question.name}</span>
+    <span style="font-size:12px;color:var(--text-muted);font-weight:400">(${question.score}点/${question.timeMinutes}分)</span>
+  `;
+
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === 'pair'));
+  await renderViewerContent();
+  document.getElementById('viewerModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function switchView(mode) {
+  currentViewMode = mode;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === mode));
+  renderViewerContent();
+}
+
+async function renderViewerContent() {
+  if (!currentViewData) return;
+  const { book, question } = currentViewData;
+  const body = document.getElementById('modalBody');
+
+  const problemImgs = await resolveImages(book, question, 'problem');
+  const answerImgs = await resolveImages(book, question, 'answer');
+
+  let imagesHtml = '';
+  if (currentViewMode === 'pair') {
+    imagesHtml = `<div class="gallery-pair">
+      <div class="gallery-column"><h3>📝 問題</h3>${renderImgList(problemImgs, book.id, question.id, 'problem')}</div>
+      <div class="gallery-column"><h3>✅ 解答・解説</h3>${renderImgList(answerImgs, book.id, question.id, 'answer')}</div>
+    </div>`;
+  } else if (currentViewMode === 'problem') {
+    imagesHtml = `<div class="image-gallery">${renderImgList(problemImgs, book.id, question.id, 'problem')}</div>`;
+  } else {
+    imagesHtml = `<div class="image-gallery">${renderImgList(answerImgs, book.id, question.id, 'answer')}</div>`;
+  }
+
+  const q = question;
+  const subQHtml = Object.entries(q.tags.sub_questions || {}).map(([label, tags]) => `
+    <div class="sub-question"><span class="sub-question-label">${label}</span>
+    <div class="sub-question-tags">${tags.map(t => `<span class="card-tag">${t}</span>`).join('')}</div></div>`).join('');
+  const tipsHtml = q.tips ? `<div class="tips-section"><h3>📚 学習ガイド</h3>
+    <div class="sub-questions">${subQHtml}</div>
+    <div class="tip-card" style="margin-top:12px"><h4>⚠️ つまずきやすいポイント</h4><ul>${(q.tips.stumbling_points||[]).map(p=>`<li>${p}</li>`).join('')}</ul></div>
+    <div class="tip-start">${q.tips.key_to_start||''}</div></div>` : '';
+
+  body.innerHTML = imagesHtml + tipsHtml;
+  if (adminMode) setupAdminDropZones();
+}
+
+async function resolveImages(book, question, type) {
+  const key = `${book.id}/${question.id}/${type}`;
+  const override = await getOverride(key);
+  if (override && override.length > 0) {
+    return override.map(item => ({ src: item.src, isOverride: true, label: item.label }));
+  }
+  const originals = type === 'problem' ? question.problemImages : question.answerImages;
+  return (originals || []).map(path => ({ src: `${book.basePath}${path}`, isOverride: false, label: path }));
+}
+
+function renderImgList(images, bookId, qId, type) {
+  if (!images || images.length === 0) {
+    const dropZone = adminMode ? renderDropZone(bookId, qId, type) : '';
+    return `<div class="empty-images"><div class="empty-icon">📄</div><p>画像なし</p></div>${dropZone}`;
+  }
+
+  let html = images.map((img, idx) => {
+    if (adminMode) {
+      return `<div class="admin-img-wrapper" data-idx="${idx}" data-book="${bookId}" data-qid="${qId}" data-type="${type}">
+        <img src="${img.src}" alt="${img.label}" loading="lazy">
+        <div class="admin-img-actions">
+          ${idx > 0 ? `<button class="btn-up" onclick="event.stopPropagation();moveImage('${bookId}','${qId}','${type}',${idx},-1)" title="上に移動">↑</button>` : ''}
+          ${idx < images.length - 1 ? `<button class="btn-down" onclick="event.stopPropagation();moveImage('${bookId}','${qId}','${type}',${idx},1)" title="下に移動">↓</button>` : ''}
+          <button class="btn-del" onclick="event.stopPropagation();removeImage('${bookId}','${qId}','${type}',${idx})" title="削除">🗑</button>
+        </div>
+      </div>`;
+    }
+    return `<img src="${img.src}" alt="${img.label}" loading="lazy">`;
+  }).join('');
+
+  if (adminMode) html += renderDropZone(bookId, qId, type);
+  return html;
+}
+
+function renderDropZone(bookId, qId, type) {
+  return `<div class="admin-drop-zone" data-book="${bookId}" data-qid="${qId}" data-type="${type}">
+    <span style="font-size:20px">📎</span>
+    <span>ここに画像をドラッグ&ドロップ、または<br>Ctrl+Vでペースト、クリックでファイル選択</span>
+    <input type="file" accept="image/*" multiple>
+  </div>`;
+}
+
+function setupAdminDropZones() {
+  document.querySelectorAll('.admin-drop-zone').forEach(zone => {
+    const bookId = zone.dataset.book;
+    const qId = zone.dataset.qid;
+    const type = zone.dataset.type;
+    const fileInput = zone.querySelector('input[type="file"]');
+
+    zone.addEventListener('click', () => { lastFocusedType = type; fileInput.click(); });
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); lastFocusedType = type; zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      lastFocusedType = type;
+      for (const file of e.dataTransfer.files) {
+        if (file.type.startsWith('image/')) await addImageFromFile(bookId, qId, type, file);
+      }
+    });
+    fileInput.addEventListener('change', async (e) => {
+      for (const file of e.target.files) {
+        if (file.type.startsWith('image/')) await addImageFromFile(bookId, qId, type, file);
+      }
+    });
+  });
+
+  // gallery-column のクリックでもフォーカスを記録（問題/解答ヘッダー等のクリック）
+  document.querySelectorAll('.gallery-column').forEach(col => {
+    col.addEventListener('click', () => {
+      const zone = col.querySelector('.admin-drop-zone');
+      if (zone) lastFocusedType = zone.dataset.type;
+    });
+  });
+}
+
+async function handleAdminImageAdd(file) {
+  if (!currentViewData) return;
+  const { book, question } = currentViewData;
+  let type;
+  if (currentViewMode === 'answer') {
+    type = 'answer';
+  } else if (currentViewMode === 'problem') {
+    type = 'problem';
+  } else {
+    // pairモード: 最後にクリック/操作した側にペースト（デフォルトはanswer）
+    type = lastFocusedType || 'answer';
+  }
+  await addImageFromFile(book.id, question.id, type, file);
+}
+
+async function addImageFromFile(bookId, qId, type, file) {
+  const dataUrl = await fileToDataUrl(file);
+  const key = `${bookId}/${qId}/${type}`;
+  let existing = await getOverride(key);
+
+  if (!existing) {
+    const data = findQuestion(bookId, qId);
+    if (data) {
+      const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
+      existing = await Promise.all((originals || []).map(async (path) => {
+        try {
+          const resp = await fetch(`${data.book.basePath}${path}`);
+          const blob = await resp.blob();
+          const origDataUrl = await blobToDataUrl(blob);
+          return { src: origDataUrl, label: path };
+        } catch { return { src: `${data.book.basePath}${path}`, label: path }; }
+      }));
+    } else {
+      existing = [];
+    }
+  }
+
+  existing.push({ src: dataUrl, label: `pasted_${Date.now()}` });
+  await setOverride(key, existing);
+  await renderViewerContent();
+}
+
+async function removeImage(bookId, qId, type, idx) {
+  const key = `${bookId}/${qId}/${type}`;
+  let images = await getOverride(key);
+
+  if (!images) {
+    const data = findQuestion(bookId, qId);
+    if (!data) return;
+    const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
+    images = await Promise.all((originals || []).map(async (path) => {
+      try {
+        const resp = await fetch(`${data.book.basePath}${path}`);
+        const blob = await resp.blob();
+        return { src: await blobToDataUrl(blob), label: path };
+      } catch { return { src: `${data.book.basePath}${path}`, label: path }; }
+    }));
+  }
+
+  images.splice(idx, 1);
+  if (images.length === 0) {
+    await deleteOverride(key);
+  } else {
+    await setOverride(key, images);
+  }
+  await renderViewerContent();
+}
+
+async function moveImage(bookId, qId, type, idx, direction) {
+  const key = `${bookId}/${qId}/${type}`;
+  let images = await getOverride(key);
+
+  if (!images) {
+    const data = findQuestion(bookId, qId);
+    if (!data) return;
+    const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
+    images = await Promise.all((originals || []).map(async (path) => {
+      try {
+        const resp = await fetch(`${data.book.basePath}${path}`);
+        const blob = await resp.blob();
+        return { src: await blobToDataUrl(blob), label: path };
+      } catch { return { src: `${data.book.basePath}${path}`, label: path }; }
+    }));
+  }
+
+  const newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= images.length) return;
+  [images[idx], images[newIdx]] = [images[newIdx], images[idx]];
+  await setOverride(key, images);
+  await renderViewerContent();
+}
+
+// --- Utilities ---
+function fileToDataUrl(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
+
+// --- Close Modal ---
+function closeModal() {
+  document.getElementById('viewerModal').classList.remove('active');
+  document.body.style.overflow = '';
+  currentViewData = null;
+}
+
+// --- Print ---
+function printCurrent() {
+  if (!currentViewData) return;
+  preparePrint([currentViewData]);
+}
+
+function printSingle(bookId, qId) {
+  const d = findQuestion(bookId, qId);
+  if (d) preparePrint([d]);
+}
+
+function printSelected() {
+  const items = [];
+  selectedQuestions.forEach(key => {
+    const [bookId, qId] = key.split('/');
+    const d = findQuestion(bookId, qId);
+    if (d) items.push(d);
+  });
+  if (items.length > 0) preparePrint(items);
+}
+
+function viewSelected() {
+  const keys = [...selectedQuestions];
+  if (keys.length > 0) {
+    const [bookId, qId] = keys[0].split('/');
+    openViewer(bookId, qId);
+  }
+}
+
+async function preparePrint(items) {
+  const printBody = document.getElementById('printBody');
+  const printHeader = document.getElementById('printHeader');
+  const printModal = document.getElementById('printModal');
+
+  printHeader.textContent = items.map(d => `${d.round.title} ${d.question.name}`).join(' / ');
+
+  let html = '';
+  for (const { book, round, question } of items) {
+    const problemImgs = await resolveImages(book, question, 'problem');
+    const answerImgs = await resolveImages(book, question, 'answer');
+    const title = `${book.publisher} ${book.year}年 ${round.title} ${question.name}（${question.score}点）`;
+
+    html += problemImgs.map((img, idx) => {
+      const pb = idx > 0 ? 'page-break-before:always;' : '';
+      const hdr = idx === 0 ? `<div style="font-size:11px;font-weight:bold;color:#333;border-bottom:1px solid #999;padding-bottom:1px;margin-bottom:2px">${title} ─ 問題</div>` : '';
+      const mh = idx === 0 ? '270mm' : '277mm';
+      return `<div style="${pb}text-align:center">${hdr}<img src="${img.src}" style="display:block;max-width:100%;max-height:${mh};width:auto;height:auto;object-fit:contain;margin:0 auto"></div>`;
+    }).join('');
+
+    html += answerImgs.map((img, idx) => {
+      const hdr = idx === 0 ? `<div style="font-size:11px;font-weight:bold;color:#333;border-bottom:1px solid #999;padding-bottom:1px;margin-bottom:2px">${title} ─ 解答・解説</div>` : '';
+      const mh = idx === 0 ? '270mm' : '277mm';
+      return `<div style="page-break-before:always;text-align:center">${hdr}<img src="${img.src}" style="display:block;max-width:100%;max-height:${mh};width:auto;height:auto;object-fit:contain;margin:0 auto"></div>`;
+    }).join('');
+  }
+
+  printBody.innerHTML = html;
+  printModal.classList.add('active');
+  document.getElementById('viewerModal').classList.remove('active');
+
+  const imgs = printBody.querySelectorAll('img');
+  const promises = Array.from(imgs).map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise(resolve => {
+      img.onload = resolve;
+      img.onerror = resolve;
+    });
+  });
+  await Promise.all(promises);
+  await new Promise(r => setTimeout(r, 200));
+  window.print();
+  printModal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+  </script>
+</body>
+</html>
