@@ -201,12 +201,12 @@ body.admin-mode #adminToggle { background:var(--warning); color:white; border-ra
   body { background:white!important; color:black!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; margin:0!important; padding:0!important; }
   .header,.search-section,.stats-bar,.selection-bar,.modal-header,.modal-footer,.view-tabs,.tips-section,.no-print,.admin-indicator { display:none!important; }
   .main-content, .cards-grid, .question-card { display:none!important; }
-  #viewerModal { display:none!important; }
+  #viewerModal, #helpModal { display:none!important; }
   #printModal { display:block!important; position:static!important; background:none!important; backdrop-filter:none!important; padding:0!important; margin:0!important; inset:auto!important; z-index:auto!important; }
   #printModal > .modal-content { display:block!important; max-width:none!important; width:100%!important; max-height:none!important; border:none!important; border-radius:0!important; box-shadow:none!important; background:white!important; padding:0!important; margin:0!important; }
+  #printHeader { display:none!important; }
   #printBody { padding:0!important; overflow:visible!important; }
   #printBody img { width:100%!important; height:auto!important; display:block!important; margin:0!important; padding:0!important; border:none!important; border-radius:0!important; }
-  .print-header { display:block!important; text-align:center; margin:0 0 4px!important; font-size:14px; font-weight:bold; color:black; border-bottom:1px solid #999; padding-bottom:3px; }
 }
 
 /* --- Responsive --- */
