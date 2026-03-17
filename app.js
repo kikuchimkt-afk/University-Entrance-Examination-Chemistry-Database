@@ -239,7 +239,7 @@ function getFilteredQuestions() {
 }
 
 // --- Render Cards ---
-function renderCards() {
+async function renderCards() {
   const grid = document.getElementById('cardsGrid');
   const noResults = document.getElementById('noResults');
   const results = getFilteredQuestions();
@@ -249,10 +249,16 @@ function renderCards() {
   if (results.length === 0) { grid.innerHTML = ''; noResults.style.display = 'block'; return; }
   noResults.style.display = 'none';
 
-  grid.innerHTML = results.map(({ book, round, question, allTags }) => {
+  // IndexedDBからオーバーライド分のページ数も取得
+  const cardsHtml = await Promise.all(results.map(async ({ book, round, question, allTags }) => {
     const isSelected = selectedQuestions.has(`${book.id}/${question.id}`);
     const pTheme = PUBLISHER_THEMES[book.publisher] || { color: '#6366f1', bg: 'rgba(99,102,241,0.15)' };
-    const imageCount = (question.problemImages?.length || 0) + (question.answerImages?.length || 0);
+
+    const overP = await getOverride(`${book.id}/${question.id}/problem`);
+    const overA = await getOverride(`${book.id}/${question.id}/answer`);
+    const pCount = overP ? overP.length : (question.problemImages?.length || 0);
+    const aCount = overA ? overA.length : (question.answerImages?.length || 0);
+
     const matchedTags = allTags.map(tag => {
       const isHighlight = (currentSearch && tag.toLowerCase().includes(currentSearch.toLowerCase()))
         || [...activeFilters.units].some(f => tag.includes(f) || f.includes(tag));
@@ -271,7 +277,7 @@ function renderCards() {
             <div class="card-meta">
               <span>配点${question.score}点</span>
               <span>目安${question.timeMinutes}分</span>
-              <span>📄${imageCount}p</span>
+              <span>📄 ${pCount}p + ${aCount}p</span>
             </div>
             <div class="card-source">${book.title}</div>
           </div>
@@ -287,7 +293,9 @@ function renderCards() {
         </div>
       </div>
     `;
-  }).join('');
+  }));
+
+  grid.innerHTML = cardsHtml.join('');
 }
 
 // --- Card Click ---
