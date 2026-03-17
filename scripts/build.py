@@ -18,6 +18,7 @@ js_files = [
     os.path.join(base, 'data', 'sundai_2024_chem', 'meta.js'),
     os.path.join(base, 'data', 'sundai_2024_chemkiso', 'meta.js'),
     os.path.join(base, 'data', 'kakomon_chem', 'meta.js'),
+    os.path.join(base, 'data', 'zkai_2026_chem', 'meta.js'),
     os.path.join(base, 'app.js')
 ]
 js_parts = []
@@ -49,6 +50,8 @@ html = f'''<!DOCTYPE html>
         <span class="logo-sub">共通テスト問題データベース</span>
       </div>
       <div class="header-actions">
+        <button class="btn btn-ghost btn-icon" id="themeToggle" onclick="toggleTheme()" title="テーマ切替">🌙</button>
+        <button class="btn btn-ghost btn-icon" onclick="openHelp()" title="使い方ガイド">❓</button>
         <button class="btn btn-ghost btn-icon" id="adminToggle" onclick="toggleAdminMode()" title="管理モード">🔧</button>
         <button class="btn btn-ghost btn-icon" id="selectModeBtn" onclick="toggleSelectMode()" title="選択モード">☐</button>
       </div>
@@ -132,6 +135,50 @@ html = f'''<!DOCTYPE html>
           <button class="view-tab" data-view="answer" onclick="switchView('answer')">✅ 解答のみ</button>
         </div>
         <button class="btn btn-primary" onclick="printCurrent()">🖨️ 印刷</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="helpModal" onclick="if(event.target===this)closeHelp()">
+    <div class="modal-content" style="max-width:720px">
+      <div class="modal-header" style="display:flex!important;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)">
+        <h2 style="margin:0;font-size:18px;color:var(--text-primary)">📖 使い方ガイド</h2>
+        <button class="btn btn-ghost btn-icon" onclick="closeHelp()" style="font-size:20px">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px;max-height:70vh;overflow-y:auto;font-size:14px;line-height:1.7;color:var(--text-primary)">
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">🔍 検索・フィルタ</h3>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li><b>出版社・年度・科目・回</b> のチップをクリックで絞り込み</li>
+          <li><b>キーワード検索</b>：問題名・タグ・トピック等で自由検索</li>
+          <li>複数条件の組み合わせ可能（AND検索）</li>
+        </ul>
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">👁️ 問題の閲覧</h3>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li>カードをクリックで問題ビューアを表示</li>
+          <li><b>問題＋解答</b>：左右2列で同時表示</li>
+          <li><b>問題のみ / 解答のみ</b>：タブで切り替え</li>
+          <li>画像クリックで拡大表示</li>
+        </ul>
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">☐ 選択モード＆印刷</h3>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li>ヘッダーの <b>☐</b> ボタンで選択モード ON/OFF</li>
+          <li>カードをクリックして複数問題を選択</li>
+          <li>画面下部のバーから <b>🖨️ 印刷</b> / <b>👁️ プレビュー</b></li>
+          <li>各画像が1ページに収まるよう自動縮小されます</li>
+          <li>問題と解答・解説は別ページに出力されます</li>
+        </ul>
+        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">🔧 管理モード（画像編集）</h3>
+        <ul style="margin:0 0 16px;padding-left:20px">
+          <li>ヘッダーの <b>🔧</b> ボタンで管理モード ON/OFF</li>
+          <li><b>画像の追加</b>：ドラッグ＆ドロップ / Ctrl+V でペースト</li>
+          <li><b>画像の削除</b>：画像上の ✕ ボタン</li>
+          <li><b>画像の並替</b>：↑↓ ボタンで順序変更</li>
+          <li>変更はブラウザのIndexedDBに自動保存されます</li>
+        </ul>
+        <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px 16px;margin-top:8px">
+          <p style="margin:0;font-size:13px;color:var(--text-muted)">💡 <b>ヒント</b>：ビューア表示中に問題カードの 🖨️ ボタンを押すと、その問題だけを直接印刷できます。</p>
+        </div>
       </div>
     </div>
   </div>

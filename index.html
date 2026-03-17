@@ -42,32 +42,6 @@
   --radius-lg: 16px;
   --radius-xl: 20px;
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --header-bg: rgba(10,15,26,0.85);
-}
-
-[data-theme="light"] {
-  --bg-primary: #f0f7fc;
-  --bg-secondary: #e8f0f8;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f0f6fc;
-  --bg-modal: #ffffff;
-  --bg-input: #eef4fa;
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #7890a8;
-  --text-accent: #0284c7;
-  --accent-primary: #0ea5e9;
-  --accent-secondary: #06b6d4;
-  --accent-glow: rgba(14, 165, 233, 0.12);
-  --border-color: #c8dae8;
-  --border-hover: #a0bcd4;
-  --tag-bg: rgba(14, 165, 233, 0.08);
-  --tag-border: rgba(14, 165, 233, 0.2);
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.1);
-  --shadow-glow: 0 0 20px var(--accent-glow);
-  --header-bg: rgba(240,247,252,0.85);
 }
 
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -79,7 +53,6 @@ body {
   line-height: 1.7;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  transition: background 0.3s, color 0.3s;
 }
 
 ::-webkit-scrollbar { width:8px; height:8px; }
@@ -88,7 +61,7 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
 
 /* --- Header --- */
-.header { position:sticky; top:0; z-index:100; background:var(--header-bg); backdrop-filter:blur(20px); border-bottom:1px solid var(--border-color); padding:0 24px; }
+.header { position:sticky; top:0; z-index:100; background:rgba(10,15,26,0.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border-color); padding:0 24px; }
 .header-inner { max-width:1400px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:64px; }
 .logo { display:flex; align-items:center; gap:12px; }
 .logo-icon { font-size:28px; filter:drop-shadow(0 0 8px var(--accent-glow)); }
@@ -136,7 +109,7 @@ body {
 .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:14px; }
 
 /* --- Cards --- */
-.question-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); overflow:hidden; transition:var(--transition); cursor:pointer; position:relative; display:flex; flex-direction:column; }
+.question-card { background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); overflow:hidden; transition:var(--transition); cursor:pointer; position:relative; }
 .question-card:hover { border-color:var(--accent-primary); transform:translateY(-2px); box-shadow:var(--shadow-lg), 0 0 16px var(--accent-glow); }
 .question-card.selected { border-color:var(--accent-primary); box-shadow:0 0 0 2px var(--accent-primary), var(--shadow-md); }
 .card-select-check { position:absolute; top:12px; right:12px; width:22px; height:22px; border-radius:50%; border:2px solid var(--border-color); background:var(--bg-card); display:flex; align-items:center; justify-content:center; font-size:12px; color:transparent; transition:var(--transition); z-index:2; }
@@ -152,7 +125,7 @@ body {
 .card-tag { padding:2px 7px; border-radius:4px; font-size:10px; font-weight:500; background:var(--tag-bg); color:var(--text-accent); border:1px solid transparent; }
 .card-tag.highlight { border-color:var(--accent-primary); background:rgba(14,165,233,0.2); }
 .card-topic { padding:0 18px 12px; font-size:12px; color:var(--text-secondary); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.card-footer { padding:8px 18px; background:var(--bg-secondary); border-top:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:auto; }
+.card-footer { padding:8px 18px; background:rgba(0,0,0,0.2); border-top:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; font-size:11px; color:var(--text-muted); }
 .card-footer-actions { display:flex; gap:4px; }
 
 /* --- Modal --- */
@@ -392,15 +365,9 @@ body.admin-mode #adminToggle { background:var(--warning); color:white; border-ra
           <li><b>画像の追加</b>：ドラッグ＆ドロップ / Ctrl+V でペースト</li>
           <li><b>画像の削除</b>：画像上の ✕ ボタン</li>
           <li><b>画像の並替</b>：↑↓ ボタンで順序変更</li>
-          <li>変更は自動的にクラウド（Google Drive）に保存されます</li>
+          <li>変更はブラウザのIndexedDBに自動保存されます</li>
         </ul>
-        <h3 style="margin:0 0 8px;font-size:15px;color:var(--text-accent)">☁️ クラウド同期</h3>
-        <ul style="margin:0 0 16px;padding-left:20px">
-          <li>画像の修正データはGoogle Driveに自動保存</li>
-          <li>別のPCでも同じデータが利用可能</li>
-          <li>ローカルキャッシュ併用で高速表示</li>
-        </ul>
-        <div style="background:var(--surface-card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-top:8px">
+        <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;padding:12px 16px;margin-top:8px">
           <p style="margin:0;font-size:13px;color:var(--text-muted)">💡 <b>ヒント</b>：ビューア表示中に問題カードの 🖨️ ボタンを押すと、その問題だけを直接印刷できます。</p>
         </div>
       </div>
@@ -414,8 +381,6 @@ body.admin-mode #adminToggle { background:var(--warning); color:white; border-ra
       <div class="modal-body" id="printBody"></div>
     </div>
   </div>
-
-  <script src="data/zkai_2026_chem/meta.js"></script>
 
   <script>
 // === registry.js ===
@@ -1122,6 +1087,154 @@ var BOOK_DATA_kakomon_chem_2025 = {
 };
 
 
+// === meta.js ===
+// =============================================================================
+// Z会 2026年 共通テスト実戦模試 化学 — メタデータ
+// =============================================================================
+// 各回5問×5回 = 25問
+
+var BOOK_DATA_zkai_2026_chem = {
+  id: "zkai_2026_chem",
+  publisher: "Z会",
+  year: 2026,
+  subject: "化学",
+  title: "2026年 Z会共通テスト実戦模試 化学",
+  basePath: "data/zkai_2026_chem/",
+  rounds: [
+    // ===================== 第1回 =====================
+    {
+      id: "round1", title: "第1回",
+      questions: [
+        { id: "r1q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["酸と塩基", "塩の分類", "水溶液の性質", "正誤判定"], "問2": ["物質の構成", "結晶格子", "六方最密構造", "計算問題"], "問3": ["物質の状態と平衡", "蒸気圧", "混合気体", "状態方程式", "グラフ読み取り"], "問4": ["溶液の性質", "浸透圧", "モル質量測定", "グラフ読み取り"] }, aggregate_tags: ["理論化学", "物質の構成", "物質の状態と平衡", "溶液の性質"] },
+          tips: { topic: "物質の構成・状態と溶液の性質に関する小問集合", stumbling_points: ["六方最密構造の単位格子の高さを幾何学的に計算する際の位置関係の把握", "気体の分圧と飽和蒸気圧を比較して液体の水が存在する温度域を判定すること", "高分子化合物の分子量測定において、グラフのy切片（極限値）を読み取る意味の理解"], key_to_start: "問3はまず全量が気体であると仮定して各気体の分圧を計算し、蒸気圧曲線と比較して凝縮が起こるかどうかを確認する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "反応エンタルピー", "結合エネルギー", "状態変化"], "問2": ["電池と電気分解", "鉛蓄電池", "ファラデーの法則", "計算問題"], "問3": ["反応速度と化学平衡", "反応速度", "アレニウスの式", "活性化エネルギー", "触媒", "グラフ読み取り"] }, aggregate_tags: ["理論化学", "熱化学", "電池と電気分解", "反応速度と化学平衡"] },
+          tips: { topic: "熱化学、電気化学、反応速度の理論", stumbling_points: ["結合エネルギーから反応エンタルピーを求める際の計算の符号ミスや状態変化のエネルギーの組み込み忘れ", "直列回路における鉛蓄電池の質量の変化量から流れた電子の物質量を正確に求めること", "アレニウスの式の対数グラフにおいて傾きが活性化エネルギーとどのように関係しているかの数学的理解"], key_to_start: "問1はエネルギー図を描いて各状態のエネルギーの相対的な位置を視覚化し、ヘスの法則を用いて計算式を立てる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "非金属元素", "ハロゲン", "正誤判定"], "問2": ["無機物質", "典型金属", "正誤判定"], "問3": ["無機物質", "遷移金属", "錯イオン", "合金", "正誤判定"], "問4": ["無機物質", "アルカリ金属", "中和滴定", "二段滴定", "熱分解", "定量計算", "実験考察"] }, aggregate_tags: ["無機化学", "非金属元素", "金属元素", "定量計算"] },
+          tips: { topic: "無機物質の性質と炭酸塩の中和滴定・熱分解", stumbling_points: ["錯イオンの生成条件や沈殿の色、合金の成分などの基礎知識の暗記不足", "炭酸塩の二段滴定において各指示薬の変色域までにどの化学反応が完了しているかの把握", "加熱による炭酸水素ナトリウムの熱分解反応式の立式と残存する固体の質量の計算"], key_to_start: "問4はまずセスキ炭酸ソーダに含まれる各成分の物質量を計算し、塩酸を加えたときにどの成分がどの順番で反応するか化学反応式を書き出す。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "異性体", "構造異性体", "立体異性体"], "問2": ["有機化合物", "油脂", "けん化", "ヨウ素付加", "計算問題"], "問3": ["高分子化合物", "合成高分子", "重合", "正誤判定"], "問4": ["高分子化合物", "アミノ酸", "等電点", "電気泳動", "電離平衡"] }, aggregate_tags: ["有機化学", "脂肪族化合物", "高分子化合物", "異性体"] },
+          tips: { topic: "脂肪族・高分子化合物の構造と性質、アミノ酸の平衡", stumbling_points: ["不斉炭素原子の確認漏れやシス・トランス異性体の数え落としによる異性体数のカウントミス", "油脂1分子に対してKOHが3分子反応し炭素-炭素二重結合1つにつきヨウ素が1分子付加するという量論関係の立式", "アミノ酸の多段階の電離平衡において与えられた2つの電離定数を組み合わせて水素イオン濃度を求める式変形"], key_to_start: "問2は「油脂1molのけん化にはKOHが3mol必要」および「C=C結合の数だけI2が付加する」という原則に従い物質量の等式を立てる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r1q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "エステル", "加水分解", "芳香族化合物", "異性化", "付加反応", "置換反応", "構造決定"], "問2": ["有機化合物", "機器分析", "NMR", "化学的環境", "構造決定"] }, aggregate_tags: ["有機化学", "芳香族化合物", "構造決定", "機器分析"] },
+          tips: { topic: "有機化合物の総合的な構造決定と機器分析（NMR）", stumbling_points: ["加水分解で生じたエノール型の化合物が直ちにアルデヒドやケトンに異性化する現象の知識不足", "芳香環に対する臭素の置換反応とアルケンに対する臭素の付加反応で必要な臭素のモル数の違いの理解", "1H-NMRスペクトルの積分比とピークの数から分子内の対称性を見抜き化学的環境の異なる水素原子をマッピングすること"], key_to_start: "問1は呈色反応（塩化鉄(III)）、フェーリング反応、ヨードホルム反応などの結果から官能基を特定しパーツを組み立てる。問2は分子式と不飽和度を確認した上でNMRの個数比から分子の対称性を考える。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第2回 =====================
+    {
+      id: "round2", title: "第2回",
+      questions: [
+        { id: "r2q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質量と化学反応式", "分子量", "アボガドロ定数"], "問2": ["物質の構成", "結晶格子", "イオン結晶", "NaCl型構造", "密度計算"], "問3": ["溶液の性質", "コロイド", "ミセル", "セッケン"], "問4": ["物質の状態と平衡", "理想気体と実在気体", "ファンデルワールス状態方程式", "排除体積"] }, aggregate_tags: ["理論化学", "物質の構成", "物質の状態と平衡", "溶液の性質"] },
+          tips: { topic: "気体・結晶・コロイドなどの物質の構成と状態", stumbling_points: ["イオン結晶の単位格子における陽イオン・陰イオンの個数の数え落としや密度計算における長さの単位変換ミス", "セッケンのミセル構造において親水基と疎水基の向きを溶媒に合わせて正しく判断できないこと", "実在気体の状態方程式において分子自身の体積や分子間力が理想気体の方程式にどう補正を与えるかの物理的意味の混同"], key_to_start: "問2の密度計算はまず単位格子に含まれるNa+とCl-の数を正確に把握し「密度＝単位格子の質量÷体積」の基本公式に丁寧に代入する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "ヘスの法則", "中和エンタルピー", "溶解エンタルピー", "計算問題"], "問2": ["反応速度と化学平衡", "化学平衡の法則", "平衡定数", "グラフ読み取り"], "問3": ["電池と電気分解", "リチウムイオン電池", "鉛蓄電池", "ファラデーの法則", "質量変化"] }, aggregate_tags: ["理論化学", "熱化学", "反応速度と化学平衡", "電池と電気分解"] },
+          tips: { topic: "熱化学の計算、化学平衡、および実用電池の定量計算", stumbling_points: ["エンタルピー変化を求める際の発熱反応と吸熱反応の符号の取り間違い", "直列回路において鉛蓄電池の極板の質量変化から回路全体を流れた電子の物質量を換算する際の係数比のミス", "リチウムイオン電池など見慣れない実用電池の反応式における各物質の酸化数の変化や量論関係の読解不足"], key_to_start: "問3はまず鉛蓄電池の正極・負極の反応式を書き出し「電子が何mol流れたときに極板が何g変化するか」の基準を確立する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "非金属元素", "硫黄", "接触法", "正誤判定"], "問2": ["無機物質", "遷移金属", "鉄", "銅", "錯イオン"], "問3": ["無機物質", "典型金属", "炭酸塩", "酸と塩基", "電離平衡", "pH計算"] }, aggregate_tags: ["無機化学", "非金属元素", "遷移金属", "酸と塩基", "電離平衡"] },
+          tips: { topic: "硫黄・鉄・銅などの無機物質の性質と炭酸の電離平衡", stumbling_points: ["鉄(II)と鉄(III)、銅(II)の沈殿の色や錯イオン形成条件などの無機化学の頻出事項の暗記の混同", "ヘンリーの法則を用いた気体の溶解度計算と二段階電離の平衡定数を用いた数式処理における近似の適用ミス", "対数計算（pHの計算）における底の変換や四則演算のケアレスミス"], key_to_start: "問3(c)はまずヘンリーの法則を用いて水中のCO2濃度を算出し次に電離定数K1とK2の式を掛け合わせてH2CO3を消去し[H+]の式を導出する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "異性体", "構造異性体", "エステル"], "問2": ["有機化合物", "酸素を含む脂肪族化合物", "アルデヒド", "ケトン", "正誤判定"], "問3": ["高分子化合物", "合成高分子", "合成樹脂", "合成繊維"], "問4": ["有機化合物", "芳香族化合物", "配向性", "多段階合成", "構造決定"] }, aggregate_tags: ["有機化学", "脂肪族化合物", "芳香族化合物", "高分子化合物"] },
+          tips: { topic: "エステルの異性体、芳香族の配向性と多段階合成", stumbling_points: ["分子式からエステルの構造異性体を書き出す際ギ酸エステルなどの特定の構造を見落とすこと", "芳香族化合物の配向性（オルト・パラ配向性 vs メタ配向性）を混同し置換基を導入する順番を間違えてしまうこと", "ニトロ基の還元、アセチル化、ジアゾ化など芳香族特有の反応試薬と条件の知識不足"], key_to_start: "問4(c)の合成経路の決定は最終生成物の置換基の位置関係を確認し「どの置換基を先にベンゼン環に導入すればその配向性になるか」を逆算して考える。" },
+          problemImages: [], answerImages: [] },
+        { id: "r2q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["高分子化合物", "糖類", "多糖類", "アミロペクチン", "メチル化", "加水分解", "定量計算"], "問2": ["高分子化合物", "酵素", "反応速度", "アルコール発酵", "文字式・近似"] }, aggregate_tags: ["高分子化合物", "糖類", "反応速度", "実験考察"] },
+          tips: { topic: "多糖類のメチル化による構造決定と酵素反応の速度論", stumbling_points: ["アミロペクチンのメチル化・加水分解において「グリコシド結合に使われていた-OH」と「遊離していた-OH」の最終的な構造の把握", "メチル化糖の質量の比から直鎖部分と枝分かれ部分のモル比を求める定量計算での立式ミス", "酵素反応の速度式において基質濃度が極端に大きい・小さい場合の近似計算の数学的処理"], key_to_start: "問1はまず問題文の「1位のメトキシ基だけが加水分解されて-OHに戻る」というルールを各糖の構造に適用しどの構造からどの生成物が生じるかを図上で確認する。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第3回 =====================
+    {
+      id: "round3", title: "第3回",
+      questions: [
+        { id: "r3q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "共有結合", "分子の構造", "有機化合物"], "問2": ["物質の状態と平衡", "状態図", "三重点", "昇華"], "問3": ["物質の状態と平衡", "理想気体の状態方程式", "分圧", "気体の燃焼", "飽和蒸気圧"], "問4": ["溶液の性質", "凝固点降下", "冷却曲線", "過冷却"] }, aggregate_tags: ["理論化学", "物質の構成", "物質の状態と平衡", "溶液の性質"] },
+          tips: { topic: "気体の燃焼・状態図と溶液の冷却曲線", stumbling_points: ["燃焼後の混合気体の全圧を求める際生成した水がすべて気体として存在できるかの確認漏れ", "冷却曲線のグラフにおいて過冷却が破れた最低温度ではなく傾きが緩やかになった直線を延長して交わる点を凝固点として読み取ること"], key_to_start: "問3の気体の燃焼計算では物質量の代わりに「分圧」を用いて反応の量的関係を整理し反応後の水の分圧が飽和蒸気圧を超えていないかを必ずチェックする。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "中和エンタルピー", "グラフ読み取り"], "問2": ["電池と電気分解", "イオン交換膜法", "ファラデーの法則", "不均化反応"], "問3": ["反応速度と化学平衡", "平衡移動", "ルシャトリエの原理", "活性化エネルギー", "平均分子量"] }, aggregate_tags: ["理論化学", "熱化学", "電池と電気分解", "反応速度と化学平衡"] },
+          tips: { topic: "熱化学のグラフ、工業的電気分解、化学平衡の定量的扱い", stumbling_points: ["中和熱のグラフにおいて酸と塩基の価数の違いによる過不足なく反応する体積比の勘違い", "平衡状態にある混合気体の平均分子量と密度から各気体のモル分率や分圧を逆算する数学的な立式・処理"], key_to_start: "問1の中和のグラフ問題はまず酸と塩基のモル濃度と価数を確認し「H+とOH-の物質量が等しくなる混合比」をグラフの頂点として特定する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "非金属元素", "水素化合物", "極性", "沸点"], "問2": ["無機物質", "気体の発生", "実験器具", "ふたまた試験管"], "問3": ["無機物質", "典型金属", "イオン化傾向", "電池の負極活物質"], "問4": ["無機物質", "遷移金属", "鉄", "銅", "錯イオン", "沈殿"], "問5": ["物質の構成", "無機物質", "合金", "結晶格子", "定量計算"] }, aggregate_tags: ["無機化学", "非金属元素", "典型金属", "遷移金属", "結晶格子"] },
+          tips: { topic: "無機物質の諸性質、気体発生実験、合金の結晶構造", stumbling_points: ["ふたまた試験管の正しい使い方などの実験器具に関する知識不足", "鉄や銅のイオンが特定の試薬と反応して生じる沈殿や錯イオンの色の暗記の混同", "合金の結晶格子の断面図から原子同士が接している方向を見つけ出し三平方の定理を用いて原子半径の式を立てること"], key_to_start: "問4の金属の反応を問う問題では金属の「イオン化傾向」を思い出し希酸で溶けるか酸化力のある酸が必要かを判断する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "有機化合物の特徴", "正誤判定"], "問2": ["有機化合物", "組成式", "アルデヒド", "ケトン", "ヨードホルム反応"], "問3": ["高分子化合物", "合成高分子", "ポリエステル", "縮合重合", "計算問題"], "問4": ["有機化合物", "芳香族化合物", "配向性", "多段階合成", "構造決定"], "問5": ["有機化合物", "エステル化", "実験考察", "分離と精製"] }, aggregate_tags: ["有機化学", "脂肪族化合物", "芳香族化合物", "高分子化合物"] },
+          tips: { topic: "有機化合物の配向性を利用した合成、エステル化実験、高分子", stumbling_points: ["芳香族化合物の多段階合成においてオルト・パラ配向性かメタ配向性かの判断ミスによる導入順序の間違い", "エステル化実験の操作において反応後に炭酸水素ナトリウム水溶液を加える目的の理解不足"], key_to_start: "問4の芳香族化合物の合成経路を推測する問題では最終生成物の置換基の位置関係を確認しどの順序で置換基を導入すればその配向になるかを逆算して考える。" },
+          problemImages: [], answerImages: [] },
+        { id: "r3q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["高分子化合物", "アミノ酸", "鏡像異性体", "立体配置"], "問2": ["高分子化合物", "アミノ酸", "等電点", "電離平衡", "グラフ読み取り"], "問3": ["高分子化合物", "ペプチド", "タンパク質", "呈色反応"] }, aggregate_tags: ["高分子化合物", "アミノ酸", "ペプチド", "タンパク質"] },
+          tips: { topic: "アミノ酸の立体構造・電離平衡とタンパク質の呈色反応", stumbling_points: ["アミノ酸の立体構造（D型/L型）を判定する際の回転させる原子団の順番や見る方向のルールの適用間違い", "pHによるアミノ酸のイオン割合のグラフから特定の電離段階における[H+]と電離定数Kの関係を見出す数式処理への不慣れ"], key_to_start: "問2の電離平衡のグラフ問題では2つのイオンの割合が50%ずつで等しくなる交点に注目し電離定数の式に代入して[H+]=K1の関係を導き出す。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第4回 =====================
+    {
+      id: "round4", title: "第4回",
+      questions: [
+        { id: "r4q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の構成", "結晶の分類", "共有結合の結晶", "構造式"], "問2": ["物質量と化学反応式", "気体の反応", "炭化水素の燃焼", "グラフ読み取り"], "問3": ["物質の状態と平衡", "状態図", "三重点", "水素結合"] }, aggregate_tags: ["理論化学", "物質の構成", "物質の状態と平衡", "物質量と化学反応式"] },
+          tips: { topic: "結晶・分子の構造、気体の燃焼グラフと状態図", stumbling_points: ["炭化水素の完全燃焼を表すグラフにおいて折れ曲がり点が「過不足なく反応した点」であることの読解不足", "水の状態図において融解曲線が左下がりになる理由と水素結合との関連づけの甘さ"], key_to_start: "問2はグラフの直線の交点を見つけその点の体積から反応した酸素と生成した二酸化炭素の体積を読み取って化学反応式の係数比と結びつける。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "結合エネルギー", "反応エンタルピー", "計算問題"], "問2": ["電池と電気分解", "電気分解", "イオン交換膜法"], "問3": ["反応速度と化学平衡", "ルシャトリエの原理", "平衡移動", "反応速度"], "問4": ["酸と塩基", "中和滴定", "弱塩基の電離平衡", "緩衝液", "pH計算"] }, aggregate_tags: ["理論化学", "熱化学", "電池と電気分解", "反応速度と化学平衡", "酸と塩基"] },
+          tips: { topic: "結合エネルギー、電気分解、化学平衡、および緩衝液のpH", stumbling_points: ["結合エネルギーから反応エンタルピーを求める際の引き算の順序の間違い", "緩衝液のpH計算において半当量点付近での弱酸・弱塩基の電離平衡の式変形や近似の適用ミス"], key_to_start: "問4bでは「アンモニアが半分中和された状態」であることに着目し残ったNH3と生じたNH4+の濃度が等しくなることを利用して電離定数Kbの式を整理する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "気体の発生", "酸化還元反応", "正誤判定"], "問2": ["無機物質", "酸化物", "酸性酸化物", "塩基性酸化物", "両性酸化物"], "問3": ["無機物質", "典型金属", "2族元素", "アルカリ土類金属"], "問4": ["無機物質", "沈殿生成", "溶解度積", "分別沈殿", "定量計算"] }, aggregate_tags: ["無機化学", "典型金属", "非金属元素", "酸化還元反応", "溶解度積"] },
+          tips: { topic: "無機物質の諸性質、酸化還元、および溶解度積を用いた沈殿平衡", stumbling_points: ["気体発生反応が酸化還元反応かどうかを判別する際の各原子の酸化数の変化の確認漏れ", "分別沈殿において第2の沈殿が生じ始めた瞬間の第1の沈殿のイオン濃度を溶解度積から逆算する手順の混乱"], key_to_start: "問4はクロム酸銀が生じ始めた瞬間の[Ag+]をそのKspから求めその同じ[Ag+]を使って塩化銀のKspから残存している[Cl-]を計算する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "元素分析", "実験考察", "正誤判定"], "問2": ["有機化合物", "脂肪族化合物", "アルコールの酸化", "ヨードホルム反応", "構造決定"], "問3": ["有機化合物", "芳香族化合物", "アミン", "ジアゾ化", "カップリング反応"], "問4": ["高分子化合物", "アミノ酸", "等電点", "呈色反応", "正誤判定"] }, aggregate_tags: ["有機化学", "脂肪族化合物", "芳香族化合物", "高分子化合物", "構造決定"] },
+          tips: { topic: "有機化合物の元素分析・構造決定、芳香族の反応、アミノ酸", stumbling_points: ["元素分析装置における吸収管の順序の理由の混同", "アルコールを酸化して得られるケトンがヨードホルム反応を示すか否かの構造的な判定ミス", "アニリンからジアゾニウム塩を生成するジアゾ化反応において氷冷下で行うという重要な実験条件の知識不足"], key_to_start: "問2は化合物Aが「酸化されてケトンになる」ことから第二級アルコールに絞り「生じたケトンBがヨードホルム反応を示さない」ことから構造を逆算して選択肢を絞り込む。" },
+          problemImages: [], answerImages: [] },
+        { id: "r4q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["電池と電気分解", "標準電極電位", "イオン化傾向"], "問2": ["無機物質", "典型金属", "遷移金属", "イオン化列"], "問3": ["電池と電気分解", "ダニエル電池", "起電力", "定量計算"], "問4": ["電池と電気分解", "ネルンストの式", "濃度変化", "対数計算"] }, aggregate_tags: ["理論化学", "電池と電気分解", "電極電位", "定量計算"] },
+          tips: { topic: "標準電極電位とネルンストの式を用いた電池の起電力計算", stumbling_points: ["イオン化傾向の大きさと標準電極電位の高低の関係性の勘違い", "ネルンストの式を用いて濃度が異なる場合の起電力を計算する際の対数法則を用いた式変形や電子数nの代入ミス"], key_to_start: "問3・問4は表から正極と負極を特定し「起電力＝正極の電位−負極の電位」の基本公式に代入する。問4はそれぞれの電極電位を個別に式に当てはめてから差をとる。" },
+          problemImages: [], answerImages: [] }
+      ]
+    },
+    // ===================== 第5回 =====================
+    {
+      id: "round5", title: "第5回",
+      questions: [
+        { id: "r5q1", name: "第1問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["物質の状態と平衡", "状態変化", "沸点", "蒸留", "グラフ読み取り"], "問2": ["物質の構成", "結晶格子", "面心立方格子", "密度計算"], "問3": ["溶液の性質", "コロイド", "透析", "凝析"], "問4": ["物質の状態と平衡", "蒸気圧", "気体の状態方程式", "グラフ読み取り"] }, aggregate_tags: ["理論化学", "物質の状態と平衡", "溶液の性質", "物質の構成"] },
+          tips: { topic: "混合物の分離、結晶の密度、コロイドの精製、気体の圧力と体積", stumbling_points: ["結晶格子の密度計算において単位格子に含まれる原子数を忘れて立式してしまうこと", "ピストン付き容器内の蒸気圧のグラフで液体が存在する間は圧力が飽和蒸気圧で一定になることの理解不足", "水銀柱を用いた蒸気圧測定において力のつり合いの立式ミス"], key_to_start: "問4aのピストン付き容器の問題ではまず「容器内の水がすべて気体になった」と仮定して状態方程式から圧力を計算しそれが飽和蒸気圧を超えているかどうかで実際に液体が残っているかを判定する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q2", name: "第2問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["熱化学", "ヘスの法則", "溶解エンタルピー", "中和エンタルピー"], "問2": ["電池と電気分解", "電気分解", "電極反応"], "問3": ["熱化学", "反応速度と化学平衡", "活性化エネルギー", "反応エンタルピー", "反応速度式"] }, aggregate_tags: ["理論化学", "熱化学", "電池と電気分解", "反応速度と化学平衡"] },
+          tips: { topic: "熱化学方程式の組み合わせ、電気分解の電極反応、反応速度式", stumbling_points: ["熱化学方程式を組み合わせる際の倍数計算や式の引き算に伴う符号の反転ミス", "電気分解で陰極から水素が発生しない条件の確認漏れ", "多段階反応の反応速度式を導出する際の中間生成物の濃度の置き換え処理"], key_to_start: "問1は与えられた熱量のデータを「1molあたりのエンタルピー変化」に直してからヘスの法則を用いて熱化学方程式を組み立てる。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q3", name: "第3問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["無機物質", "ハロゲン", "酸化還元反応", "気体の捕集法"], "問2": ["無機物質", "アルカリ土類金属", "2族元素", "炎色反応"], "問3": ["無機物質", "金属イオンの分離", "沈殿", "錯イオン"], "問4": ["無機物質", "窒素化合物", "気体の発生", "定量計算"] }, aggregate_tags: ["無機化学", "非金属元素", "典型金属", "金属イオンの分離"] },
+          tips: { topic: "ハロゲン・アルカリ土類金属・遷移金属の性質と分離、窒素酸化物の反応", stumbling_points: ["カルシウムとバリウムの性質の違いの知識の混同", "金属イオンの系統分離において過剰のアンモニア水で錯イオンを作って再溶解するイオンの記憶抜け", "二酸化窒素を水上置換で捕集した際水と反応して一酸化窒素に変化してしまうことによる体積計算の立式ミス"], key_to_start: "問4は「銅と濃硝酸から発生したNO2の全モル数」を計算した上で水上置換によってNO2が水と反応しNOになった化学反応式の係数比を用いて気体の体積を紐解く。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q4", name: "第4問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["有機化合物", "脂肪族化合物", "異性体", "アルケン", "シクロアルカン"], "問2": ["有機化合物", "芳香族化合物", "サリチル酸", "エステル化"], "問3": ["有機化合物", "エステル", "加水分解", "アルコールの酸化", "構造決定"], "問4": ["高分子化合物", "アミノ酸", "等電点", "呈色反応", "正誤判定"], "問5": ["高分子化合物", "合成繊維", "ビニロン", "アセタール化", "計算問題"] }, aggregate_tags: ["有機化学", "脂肪族化合物", "芳香族化合物", "高分子化合物", "構造決定"] },
+          tips: { topic: "有機化合物の異性体・反応・構造決定、およびビニロンの合成計算", stumbling_points: ["分子式からアルケンとシクロアルカンの異性体をすべて書き出す際のシストランス異性体の数え落とし", "サリチル酸の2種類のエステル化における反応させる試薬と生じる官能基の混同", "ビニロンの合成において2つのヒドロキシ基が1つのホルムアルデヒドと反応して架橋構造を作る際の式量増加の計算"], key_to_start: "問5のビニロンの計算はポリビニルアルコールの繰り返し単位2つ分がアセタール化されると式量が88→100になることに着目し質量増加の割合から反応率を逆算する。" },
+          problemImages: [], answerImages: [] },
+        { id: "r5q5", name: "第5問", score: 20, timeMinutes: 12,
+          tags: { sub_questions: { "問1": ["酸と塩基", "緩衝液", "多段階電離", "電離平衡", "滴定曲線"], "問2": ["溶液の性質", "抽出", "分配係数", "定量計算"] }, aggregate_tags: ["理論化学", "酸と塩基", "電離平衡", "溶液の性質", "定量計算"] },
+          tips: { topic: "弱酸の多段階電離・緩衝液と分配係数を用いた抽出の計算", stumbling_points: ["シュウ酸のような2価の弱酸の滴定曲線において第1中和点までの領域でどのイオン種が主として存在しているかの把握", "電離平衡の式を組み合わせて特定のpHにおけるイオン濃度の比を求める代数的な式変形", "分配係数を用いた計算で水層に残る質量と有機層へ移る質量を変数でおき複数回抽出を行う際の立式ミス"], key_to_start: "問2の分配係数の計算は1回の抽出で「水層に残った質量をx」「有機層に移った質量をw-x」と置き「有機層の濃度÷水層の濃度＝分配係数」の式に当てはめて解く。2回目は水層に残ったxを初期量として同じ計算を繰り返す。" },
+          problemImages: [], answerImages: [] }
+      ]
+    }
+  ]
+};
+
+
 // === app.js ===
 // =============================================================================
 // 共通テスト化学データベース - アプリケーション
@@ -1140,11 +1253,20 @@ let currentViewMode = 'pair';
 let lastFocusedType = 'answer';  // pairモードCtrl+Vペースト時のデフォルトターゲット
 let currentViewData = null;
 
-// --- Cloud Storage (GAS + Drive) + IndexedDB Cache ---
-// ★ GASデプロイ後にURLを設定してください
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyLWRWAbO9IP8-HuZDIZXBZKz0viZuCFk8kLLvch1Hoq7De4fnQNFNt0zTr8PvKLxTXHw/exec';
+// --- 排他制御: 連続ペースト時のレースコンディション防止 ---
+const imageOpQueues = new Map();
 
-// --- IndexedDB (ローカルキャッシュ) ---
+async function withImageLock(key, fn) {
+  const prev = imageOpQueues.get(key) || Promise.resolve();
+  const next = prev.then(fn, fn);  // 前の操作が失敗しても次を実行
+  imageOpQueues.set(key, next);
+  try { await next; } finally {
+    // キューが現在のnextなら掃除
+    if (imageOpQueues.get(key) === next) imageOpQueues.delete(key);
+  }
+}
+
+// --- IndexedDB ---
 const DB_NAME = 'chemdb_overrides';
 const DB_VERSION = 1;
 const STORE_NAME = 'image_overrides';
@@ -1163,119 +1285,40 @@ function openDB() {
   });
 }
 
-async function cacheGet(key) {
-  try {
-    const db = await openDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readonly');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.get(key);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => resolve(null);
-    });
-  } catch { return null; }
-}
-
-async function cacheSet(key, value) {
-  try {
-    const db = await openDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      store.put(value, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => resolve();
-    });
-  } catch {}
-}
-
-async function cacheDel(key) {
-  try {
-    const db = await openDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      store.delete(key);
-      tx.oncomplete = () => resolve();
-    });
-  } catch {}
-}
-
-// --- GAS API ---
-async function gasGet(key) {
-  if (!GAS_API_URL) return null;
-  try {
-    const res = await fetch(`${GAS_API_URL}?action=get&key=${encodeURIComponent(key)}`);
-    const json = await res.json();
-    return json.success ? json.data : null;
-  } catch { return null; }
-}
-
-async function gasSave(key, data) {
-  if (!GAS_API_URL) return;
-  try {
-    await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'save', key, data })
-    });
-  } catch (e) { console.warn('GAS save failed:', e); }
-}
-
-async function gasDelete(key) {
-  if (!GAS_API_URL) return;
-  try {
-    await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'delete', key })
-    });
-  } catch (e) { console.warn('GAS delete failed:', e); }
-}
-
-// --- 公開API (既存コードと同じI/F) ---
 async function getOverride(key) {
-  const cached = await cacheGet(key);
-  if (GAS_API_URL) {
-    gasGet(key).then(cloud => {
-      if (cloud !== undefined) {
-        if (cloud) cacheSet(key, cloud);
-        else cacheDel(key);
-      }
-    });
-  }
-  return cached;
+  const db = await openDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => resolve(null);
+  });
 }
 
 async function setOverride(key, value) {
-  await cacheSet(key, value);
-  gasSave(key, value);
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
 }
 
 async function deleteOverride(key) {
-  await cacheDel(key);
-  gasDelete(key);
-}
-
-// --- Theme Toggle ---
-function toggleTheme() {
-  const html = document.documentElement;
-  const current = html.getAttribute('data-theme');
-  const next = current === 'light' ? 'dark' : 'light';
-  html.setAttribute('data-theme', next);
-  localStorage.setItem('theme', next);
-  document.getElementById('themeToggle').textContent = next === 'light' ? '☀️' : '🌙';
-}
-function initTheme() {
-  const saved = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', saved);
-  const btn = document.getElementById('themeToggle');
-  if (btn) btn.textContent = saved === 'light' ? '☀️' : '🌙';
+  const db = await openDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    store.delete(key);
+    tx.oncomplete = () => resolve();
+  });
 }
 
 // --- Initialize ---
 document.addEventListener('DOMContentLoaded', () => {
-  initTheme();
   loadAllBooks();
   buildFilterUI();
   renderCards();
@@ -1466,7 +1509,7 @@ function renderCards() {
             <div class="card-meta">
               <span>配点${question.score}点</span>
               <span>目安${question.timeMinutes}分</span>
-              <span id="imgcnt_${book.id}_${question.id}">📄${imageCount}p</span>
+              <span>📄${imageCount}p</span>
             </div>
             <div class="card-source">${book.title}</div>
           </div>
@@ -1483,21 +1526,6 @@ function renderCards() {
       </div>
     `;
   }).join('');
-
-  // オーバーライド画像数をバックグラウンドで更新
-  results.forEach(async ({ book, question }) => {
-    const baseCount = (question.problemImages?.length || 0) + (question.answerImages?.length || 0);
-    if (baseCount > 0) return; // 元画像がある場合はそのまま
-    const pKey = `${book.id}/${question.id}/problem`;
-    const aKey = `${book.id}/${question.id}/answer`;
-    const pOverride = await cacheGet(pKey);
-    const aOverride = await cacheGet(aKey);
-    const overrideCount = (pOverride?.length || 0) + (aOverride?.length || 0);
-    if (overrideCount > 0) {
-      const el = document.getElementById(`imgcnt_${book.id}_${question.id}`);
-      if (el) el.textContent = `📄${overrideCount}p`;
-    }
-  });
 }
 
 // --- Card Click ---
@@ -1675,12 +1703,14 @@ function setupAdminDropZones() {
     });
   });
 
-  // gallery-column のクリックでもフォーカスを記録（問題/解答ヘッダー等のクリック）
+  // gallery-column のクリック・mouseenterでもフォーカスを記録（問題/解答ヘッダー等のクリック）
   document.querySelectorAll('.gallery-column').forEach(col => {
-    col.addEventListener('click', () => {
+    const updateFocus = () => {
       const zone = col.querySelector('.admin-drop-zone');
       if (zone) lastFocusedType = zone.dataset.type;
-    });
+    };
+    col.addEventListener('click', updateFocus);
+    col.addEventListener('mouseenter', updateFocus);
   });
 }
 
@@ -1702,77 +1732,100 @@ async function handleAdminImageAdd(file) {
 async function addImageFromFile(bookId, qId, type, file) {
   const dataUrl = await fileToDataUrl(file);
   const key = `${bookId}/${qId}/${type}`;
-  let existing = await getOverride(key);
 
-  if (!existing) {
-    const data = findQuestion(bookId, qId);
-    if (data) {
-      const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
-      existing = await Promise.all((originals || []).map(async (path) => {
-        try {
-          const resp = await fetch(`${data.book.basePath}${path}`);
-          const blob = await resp.blob();
-          const origDataUrl = await blobToDataUrl(blob);
-          return { src: origDataUrl, label: path };
-        } catch { return { src: `${data.book.basePath}${path}`, label: path }; }
-      }));
-    } else {
-      existing = [];
+  await withImageLock(key, async () => {
+    let existing = await getOverride(key);
+
+    if (!existing) {
+      const data = findQuestion(bookId, qId);
+      if (data) {
+        const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
+        existing = await Promise.all((originals || []).map(async (path) => {
+          try {
+            const resp = await fetch(`${data.book.basePath}${path}`);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const blob = await resp.blob();
+            const origDataUrl = await blobToDataUrl(blob);
+            return { src: origDataUrl, label: path };
+          } catch {
+            // fetch失敗時はスキップ（相対パスを混在させない）
+            console.warn(`Failed to fetch original image: ${path}`);
+            return null;
+          }
+        }));
+        existing = existing.filter(item => item !== null);
+      } else {
+        existing = [];
+      }
     }
-  }
 
-  existing.push({ src: dataUrl, label: `pasted_${Date.now()}` });
-  await setOverride(key, existing);
+    existing.push({ src: dataUrl, label: `pasted_${Date.now()}` });
+    await setOverride(key, existing);
+  });
   await renderViewerContent();
 }
 
 async function removeImage(bookId, qId, type, idx) {
   const key = `${bookId}/${qId}/${type}`;
-  let images = await getOverride(key);
 
-  if (!images) {
-    const data = findQuestion(bookId, qId);
-    if (!data) return;
-    const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
-    images = await Promise.all((originals || []).map(async (path) => {
-      try {
-        const resp = await fetch(`${data.book.basePath}${path}`);
-        const blob = await resp.blob();
-        return { src: await blobToDataUrl(blob), label: path };
-      } catch { return { src: `${data.book.basePath}${path}`, label: path }; }
-    }));
-  }
+  await withImageLock(key, async () => {
+    let images = await getOverride(key);
 
-  images.splice(idx, 1);
-  if (images.length === 0) {
-    await deleteOverride(key);
-  } else {
+    if (!images) {
+      const data = findQuestion(bookId, qId);
+      if (!data) return;
+      const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
+      images = await Promise.all((originals || []).map(async (path) => {
+        try {
+          const resp = await fetch(`${data.book.basePath}${path}`);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const blob = await resp.blob();
+          return { src: await blobToDataUrl(blob), label: path };
+        } catch {
+          console.warn(`Failed to fetch original image: ${path}`);
+          return null;
+        }
+      }));
+      images = images.filter(item => item !== null);
+    }
+
+    images.splice(idx, 1);
+    // 空配列でも保持する（deleteOverrideしない）
+    // → 次回追加時にオリジナル画像の意図しない復活を防ぐ
     await setOverride(key, images);
-  }
+  });
   await renderViewerContent();
 }
 
 async function moveImage(bookId, qId, type, idx, direction) {
   const key = `${bookId}/${qId}/${type}`;
-  let images = await getOverride(key);
 
-  if (!images) {
-    const data = findQuestion(bookId, qId);
-    if (!data) return;
-    const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
-    images = await Promise.all((originals || []).map(async (path) => {
-      try {
-        const resp = await fetch(`${data.book.basePath}${path}`);
-        const blob = await resp.blob();
-        return { src: await blobToDataUrl(blob), label: path };
-      } catch { return { src: `${data.book.basePath}${path}`, label: path }; }
-    }));
-  }
+  await withImageLock(key, async () => {
+    let images = await getOverride(key);
 
-  const newIdx = idx + direction;
-  if (newIdx < 0 || newIdx >= images.length) return;
-  [images[idx], images[newIdx]] = [images[newIdx], images[idx]];
-  await setOverride(key, images);
+    if (!images) {
+      const data = findQuestion(bookId, qId);
+      if (!data) return;
+      const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
+      images = await Promise.all((originals || []).map(async (path) => {
+        try {
+          const resp = await fetch(`${data.book.basePath}${path}`);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const blob = await resp.blob();
+          return { src: await blobToDataUrl(blob), label: path };
+        } catch {
+          console.warn(`Failed to fetch original image: ${path}`);
+          return null;
+        }
+      }));
+      images = images.filter(item => item !== null);
+    }
+
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= images.length) return;
+    [images[idx], images[newIdx]] = [images[newIdx], images[idx]];
+    await setOverride(key, images);
+  });
   await renderViewerContent();
 }
 
@@ -1798,16 +1851,6 @@ function closeModal() {
   document.getElementById('viewerModal').classList.remove('active');
   document.body.style.overflow = '';
   currentViewData = null;
-}
-
-// --- Help Modal ---
-function openHelp() {
-  document.getElementById('helpModal').classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-function closeHelp() {
-  document.getElementById('helpModal').classList.remove('active');
-  document.body.style.overflow = '';
 }
 
 // --- Print ---
@@ -1882,6 +1925,38 @@ async function preparePrint(items) {
   await new Promise(r => setTimeout(r, 200));
   window.print();
   printModal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// --- Theme Toggle ---
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+  try { localStorage.setItem('chemdb_theme', isLight ? 'dark' : 'light'); } catch {}
+}
+
+// Apply saved theme on load
+(function() {
+  try {
+    const saved = localStorage.getItem('chemdb_theme');
+    if (saved === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      const btn = document.getElementById('themeToggle');
+      if (btn) btn.textContent = '☀️';
+    }
+  } catch {}
+})();
+
+// --- Help Modal ---
+function openHelp() {
+  document.getElementById('helpModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeHelp() {
+  document.getElementById('helpModal').classList.remove('active');
   document.body.style.overflow = '';
 }
 

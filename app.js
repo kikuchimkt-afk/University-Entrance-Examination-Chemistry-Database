@@ -15,6 +15,19 @@ let currentViewMode = 'pair';
 let lastFocusedType = 'answer';  // pairモードCtrl+Vペースト時のデフォルトターゲット
 let currentViewData = null;
 
+// --- 排他制御: 連続ペースト時のレースコンディション防止 ---
+const imageOpQueues = new Map();
+
+async function withImageLock(key, fn) {
+  const prev = imageOpQueues.get(key) || Promise.resolve();
+  const next = prev.then(fn, fn);  // 前の操作が失敗しても次を実行
+  imageOpQueues.set(key, next);
+  try { await next; } finally {
+    // キューが現在のnextなら掃除
+    if (imageOpQueues.get(key) === next) imageOpQueues.delete(key);
+  }
+}
+
 // --- IndexedDB ---
 const DB_NAME = 'chemdb_overrides';
 const DB_VERSION = 1;
@@ -452,12 +465,14 @@ function setupAdminDropZones() {
     });
   });
 
-  // gallery-column のクリックでもフォーカスを記録（問題/解答ヘッダー等のクリック）
+  // gallery-column のクリック・mouseenterでもフォーカスを記録（問題/解答ヘッダー等のクリック）
   document.querySelectorAll('.gallery-column').forEach(col => {
-    col.addEventListener('click', () => {
+    const updateFocus = () => {
       const zone = col.querySelector('.admin-drop-zone');
       if (zone) lastFocusedType = zone.dataset.type;
-    });
+    };
+    col.addEventListener('click', updateFocus);
+    col.addEventListener('mouseenter', updateFocus);
   });
 }
 
@@ -479,77 +494,100 @@ async function handleAdminImageAdd(file) {
 async function addImageFromFile(bookId, qId, type, file) {
   const dataUrl = await fileToDataUrl(file);
   const key = `${bookId}/${qId}/${type}`;
-  let existing = await getOverride(key);
 
-  if (!existing) {
-    const data = findQuestion(bookId, qId);
-    if (data) {
-      const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
-      existing = await Promise.all((originals || []).map(async (path) => {
-        try {
-          const resp = await fetch(`${data.book.basePath}${path}`);
-          const blob = await resp.blob();
-          const origDataUrl = await blobToDataUrl(blob);
-          return { src: origDataUrl, label: path };
-        } catch { return { src: `${data.book.basePath}${path}`, label: path }; }
-      }));
-    } else {
-      existing = [];
+  await withImageLock(key, async () => {
+    let existing = await getOverride(key);
+
+    if (!existing) {
+      const data = findQuestion(bookId, qId);
+      if (data) {
+        const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
+        existing = await Promise.all((originals || []).map(async (path) => {
+          try {
+            const resp = await fetch(`${data.book.basePath}${path}`);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const blob = await resp.blob();
+            const origDataUrl = await blobToDataUrl(blob);
+            return { src: origDataUrl, label: path };
+          } catch {
+            // fetch失敗時はスキップ（相対パスを混在させない）
+            console.warn(`Failed to fetch original image: ${path}`);
+            return null;
+          }
+        }));
+        existing = existing.filter(item => item !== null);
+      } else {
+        existing = [];
+      }
     }
-  }
 
-  existing.push({ src: dataUrl, label: `pasted_${Date.now()}` });
-  await setOverride(key, existing);
+    existing.push({ src: dataUrl, label: `pasted_${Date.now()}` });
+    await setOverride(key, existing);
+  });
   await renderViewerContent();
 }
 
 async function removeImage(bookId, qId, type, idx) {
   const key = `${bookId}/${qId}/${type}`;
-  let images = await getOverride(key);
 
-  if (!images) {
-    const data = findQuestion(bookId, qId);
-    if (!data) return;
-    const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
-    images = await Promise.all((originals || []).map(async (path) => {
-      try {
-        const resp = await fetch(`${data.book.basePath}${path}`);
-        const blob = await resp.blob();
-        return { src: await blobToDataUrl(blob), label: path };
-      } catch { return { src: `${data.book.basePath}${path}`, label: path }; }
-    }));
-  }
+  await withImageLock(key, async () => {
+    let images = await getOverride(key);
 
-  images.splice(idx, 1);
-  if (images.length === 0) {
-    await deleteOverride(key);
-  } else {
+    if (!images) {
+      const data = findQuestion(bookId, qId);
+      if (!data) return;
+      const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
+      images = await Promise.all((originals || []).map(async (path) => {
+        try {
+          const resp = await fetch(`${data.book.basePath}${path}`);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const blob = await resp.blob();
+          return { src: await blobToDataUrl(blob), label: path };
+        } catch {
+          console.warn(`Failed to fetch original image: ${path}`);
+          return null;
+        }
+      }));
+      images = images.filter(item => item !== null);
+    }
+
+    images.splice(idx, 1);
+    // 空配列でも保持する（deleteOverrideしない）
+    // → 次回追加時にオリジナル画像の意図しない復活を防ぐ
     await setOverride(key, images);
-  }
+  });
   await renderViewerContent();
 }
 
 async function moveImage(bookId, qId, type, idx, direction) {
   const key = `${bookId}/${qId}/${type}`;
-  let images = await getOverride(key);
 
-  if (!images) {
-    const data = findQuestion(bookId, qId);
-    if (!data) return;
-    const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
-    images = await Promise.all((originals || []).map(async (path) => {
-      try {
-        const resp = await fetch(`${data.book.basePath}${path}`);
-        const blob = await resp.blob();
-        return { src: await blobToDataUrl(blob), label: path };
-      } catch { return { src: `${data.book.basePath}${path}`, label: path }; }
-    }));
-  }
+  await withImageLock(key, async () => {
+    let images = await getOverride(key);
 
-  const newIdx = idx + direction;
-  if (newIdx < 0 || newIdx >= images.length) return;
-  [images[idx], images[newIdx]] = [images[newIdx], images[idx]];
-  await setOverride(key, images);
+    if (!images) {
+      const data = findQuestion(bookId, qId);
+      if (!data) return;
+      const originals = type === 'problem' ? data.question.problemImages : data.question.answerImages;
+      images = await Promise.all((originals || []).map(async (path) => {
+        try {
+          const resp = await fetch(`${data.book.basePath}${path}`);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const blob = await resp.blob();
+          return { src: await blobToDataUrl(blob), label: path };
+        } catch {
+          console.warn(`Failed to fetch original image: ${path}`);
+          return null;
+        }
+      }));
+      images = images.filter(item => item !== null);
+    }
+
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= images.length) return;
+    [images[idx], images[newIdx]] = [images[newIdx], images[idx]];
+    await setOverride(key, images);
+  });
   await renderViewerContent();
 }
 
@@ -649,5 +687,37 @@ async function preparePrint(items) {
   await new Promise(r => setTimeout(r, 200));
   window.print();
   printModal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// --- Theme Toggle ---
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = isLight ? '🌙' : '☀️';
+  try { localStorage.setItem('chemdb_theme', isLight ? 'dark' : 'light'); } catch {}
+}
+
+// Apply saved theme on load
+(function() {
+  try {
+    const saved = localStorage.getItem('chemdb_theme');
+    if (saved === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      const btn = document.getElementById('themeToggle');
+      if (btn) btn.textContent = '☀️';
+    }
+  } catch {}
+})();
+
+// --- Help Modal ---
+function openHelp() {
+  document.getElementById('helpModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeHelp() {
+  document.getElementById('helpModal').classList.remove('active');
   document.body.style.overflow = '';
 }
